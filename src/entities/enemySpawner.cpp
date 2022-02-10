@@ -21,6 +21,7 @@ enemySpawner::enemySpawner(entityManager *manager, gameMain *game, glm::vec3 pos
 	auto body = new rigidBodySphere(manager, this, position, 0.0, 1.0);
 
 	manager->registerComponent(this, this);
+	manager->registerInterface<updatable>(this, this);
 
 	// TODO: resource manager
 	if (!spawnerModel) {

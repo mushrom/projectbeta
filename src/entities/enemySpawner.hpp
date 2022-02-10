@@ -11,7 +11,7 @@
 using namespace grendx;
 using namespace grendx::ecs;
 
-class enemySpawner : public entity {
+class enemySpawner : public entity, public updatable {
 	float lastSpawn = 0;
 
 	public:

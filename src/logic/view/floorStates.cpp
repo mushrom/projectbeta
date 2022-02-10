@@ -39,6 +39,7 @@ projalphaView::floorStates::floorStates(gameMain *game,
 	: zone(z)
 	  //mapQueue(view->cam)
 {
+#if 0
 	generator = std::make_shared<wfcGenerator>(game, spec),
 	generator->generate(game, {});
 
@@ -136,6 +137,7 @@ projalphaView::floorStates::floorStates(gameMain *game,
 
 	SDL_Log("Have entrance: (%g, %g, %g)", entrance.x, entrance.y, entrance.z);
 	SDL_Log("Have exit: (%g, %g, %g)", exit.x, exit.y, exit.z);
+#endif
 }
 
 void projalphaView::floorStates::processMessages(void) {
@@ -196,33 +198,38 @@ projalphaView::floorStates* projalphaView::getFloor(gameMain *game, int n) {
 
 void projalphaView::incrementFloor(gameMain *game, int amount) {
 	int nextFloor = currentFloor + amount;
-	auto cur  = getFloor(game, currentFloor);
-	auto next = getFloor(game, nextFloor);
+//	auto cur  = getFloor(game, currentFloor);
+//	auto next = getFloor(game, nextFloor);
 
+#if 0
 	if (cur) {
 		/* deactivate stuff */;
-		cur->generator->mapobjs.clear();
+		//cur->generator->mapobjs.clear();
 
+        /*
 		Messages()->unsubscribe(cur->pickupEvents, "itemPickedUp");
 		Messages()->unsubscribe(cur->pickupEvents, "itemDropped");
+        */
 
 		// XXX
 		// TODO: need to remove items from level entities when they're picked up...
 		//       and deleted, need to re-add them to the current level when they're
 		//       dropped from inventory, hmmmmm... not sure how to approach this
+        /*
 		for (auto& e : cur->levelEntities) {
 			if (game->entities->valid(e)) {
 				game->entities->deactivate(e);
 			}
 		}
+        */
 	}
 
 	if (next) {
 		/* activate stuff */
-		next->generator->mapobjs.clear();
-		next->generator->setPosition(game, glm::vec3(0));
-		mapQueue.clear();
-		mapQueue.add(next->generator->getNode());
+		//next->generator->mapobjs.clear();
+		//next->generator->setPosition(game, glm::vec3(0));
+		//mapQueue.clear();
+		//mapQueue.add(next->generator->getNode());
 
 		Messages()->subscribe(next->pickupEvents, "itemPickedUp");
 		Messages()->subscribe(next->pickupEvents, "itemDropped");
@@ -245,12 +252,14 @@ void projalphaView::incrementFloor(gameMain *game, int amount) {
 			SDL_Log("Setting player transform");
 		}
 	};
+#endif
 
 	currentFloor = nextFloor;
 }
 
 bool projalphaView::nearNode(gameMain *game, const std::string& name, float thresh)
 {
+#if 0
 	auto floor = getFloor(game, currentFloor);
 	// XXX: don't like this one bit
 	if (!floor) return false;
@@ -265,6 +274,7 @@ bool projalphaView::nearNode(gameMain *game, const std::string& name, float thre
 		glm::vec3 pos = nodeTrans.position;
 		return glm::distance(pos, playerTrans.position) < thresh;
 	}
+#endif
 
 	return false;
 }

@@ -36,6 +36,7 @@ void animatedCharacter::setAnimation(std::string animation, float weight) {
 }
 
 animatedCharacter::animatedCharacter(gameObject::ptr objs) {
+	return;
 	if ((animations = findAnimations(objs)) == nullptr) {
 		// TODO: proper error
 		throw "asdf";
@@ -176,10 +177,12 @@ void player::update(entityManager *manager, float delta) {
 
 	body->phys->setAngularFactor(0.f);
 
+	/*
 	glm::vec3 vel = body->phys->getVelocity();
 	if (glm::length(vel) < 2.0) {
 		character->setAnimation("idle");
 	} else {
 		character->setAnimation("walking");
 	}
+	*/
 }

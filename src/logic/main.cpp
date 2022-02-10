@@ -134,7 +134,8 @@ int WinMain(void) try {
 #else
 int main(int argc, char *argv[]) { try {
 #endif
-	const char *mapfile = DEMO_PREFIX "assets/maps/level-test.map";
+	//const char *mapfile = DEMO_PREFIX "assets/maps/level-test.map";
+	const char *mapfile = DEMO_PREFIX "assets/maps/arena-test.map";
 
 	if (argc > 1) {
 		mapfile = argv[1];
@@ -168,8 +169,6 @@ int main(int argc, char *argv[]) { try {
 	}
 
 	initController();
-
-	glEnable(GL_TEXTURE_2D);
 	SDL_Log("loading image...");
 	//fooimg = nk_image_load("/home/flux/pics/shit/thinkin.png");
 	//fooimg = nk_image_load("/tmp/portagrend/music.png");
@@ -292,6 +291,20 @@ int main(int argc, char *argv[]) { try {
 	view->level->addInit([=] () {
 		view->currentFloor = -1;
 		view->incrementFloor(game, 1);
+	});
+
+	view->level->addInit([=] () {
+		gameObject::ptr spawners = game->state->rootnode->getNode("spawners");
+
+		initEntitiesFromNodes(spawners,
+			[&] (const std::string& name, gameObject::ptr& ptr) {
+				std::cerr << "have spawner node " << name << std::endl;
+
+				auto en = new enemySpawner(game->entities.get(), game,
+										   ptr->getTransformTRS().position);
+				new team(game->entities.get(), en, "red");
+				game->entities->add(en);
+			});
 	});
 
 	view->level->addDestructor([=] () {

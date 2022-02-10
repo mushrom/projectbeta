@@ -218,6 +218,7 @@ projalphaView::projalphaView(gameMain *game)
 		game,
 		DEMO_PREFIX "assets/obj/catacomb-tiles/wfc-config.json"
 	);
+	DO_ERROR_CHECK();
 
 	// XXX: all using the same spec for now 
 	bunkerSpec = guildSpec = cultSpec = cellarSpec
@@ -229,6 +230,8 @@ projalphaView::projalphaView(gameMain *game)
 	if (!nk_ctx) {
 		throw std::logic_error("Couldn't initialize nk_ctx!");
 	}
+
+	DO_ERROR_CHECK();
 
 	set_style(nk_ctx, THEME_RED);
 
@@ -251,6 +254,8 @@ projalphaView::projalphaView(gameMain *game)
 			nk_style_set_font(nk_ctx, &roboto->handle);
 		}
 	}
+
+	DO_ERROR_CHECK();
 
 #ifdef NO_FLOATING_FB
 	post = renderPostChain::ptr(new renderPostChain(
