@@ -146,10 +146,17 @@ int main(int argc, char *argv[]) { try {
 	SDL_Log("have game state");
 
 	// include editor in debug builds, use main game view for release
+	// XXX: High DPI settings for my current setup
+	renderSettings foo;
+	foo.scaleX = 0.5;
+	foo.scaleY = 0.5;
+	foo.fullscreen = false;
+	foo.UIScale = 2.0;
+
 #if defined(GAME_BUILD_DEBUG)
-	gameMain *game = new gameMainDevWindow();
+	gameMainDevWindow *game = new gameMainDevWindow(foo);
 #else
-	gameMain *game = new gameMain();
+	gameMain *game = new gameMain(foo);
 #endif
 
 	int gl_w, gl_h;
@@ -167,6 +174,7 @@ int main(int argc, char *argv[]) { try {
 	} else {
 		SDL_Log("SDL_GetDisplayDPI() failed");
 	}
+
 
 	initController();
 	SDL_Log("loading image...");
@@ -223,6 +231,18 @@ int main(int argc, char *argv[]) { try {
 	view->cam->setFovx(70.0);
 	game->setView(view);
 	game->rend->lightThreshold = 0.2;
+
+#if defined(GAME_BUILD_DEBUG)
+	// TODO: need some way to update world state when editor nodes
+	//       are added, could be as simple as a list of callback functions
+	//       that get called when adding nodes
+	game->input.bind(MODAL_ALL_MODES, [=] (SDL_Event& ev, unsigned flags) {
+		if (ev.type == SDL_KEYDOWN && ev.key.keysym.sym == SDLK_p) {
+			view->level->reset();
+		}
+		return MODAL_NO_CHANGE;
+	});
+#endif
 
 	view->level->addInit([=] () {
 		//view->wfcgen->generate(game, {});

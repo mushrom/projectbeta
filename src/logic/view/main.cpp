@@ -261,12 +261,12 @@ projalphaView::projalphaView(gameMain *game)
 	post = renderPostChain::ptr(new renderPostChain(
 		{loadPostShader(GR_PREFIX "shaders/baked/texpresent.frag",
 		                game->rend->globalShaderOptions)},
-		SCREEN_SIZE_X, SCREEN_SIZE_Y));
+		game->settings.targetResX, game->settings.targetResY));
 #else
 	post = renderPostChain::ptr(new renderPostChain(
 		{loadPostShader(GR_PREFIX "shaders/baked/texpresent.frag",
 		                game->rend->globalShaderOptions)},
-		SCREEN_SIZE_X, SCREEN_SIZE_Y));
+		game->settings.targetResX, game->settings.targetResY));
 	/*
 	post = renderPostChain::ptr(new renderPostChain(
 		{
