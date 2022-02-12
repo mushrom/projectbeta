@@ -55,7 +55,9 @@ using namespace grendx::ecs;
 #include <entities/killedParticles.hpp>
 #include <entities/targetArea.hpp>
 #include <entities/amulet.hpp>
+
 #include <entities/generator.hpp>
+#include <entities/blockade.hpp>
 
 #include <logic/projalphaView.hpp>
 #include <logic/wfcGenerator.hpp>
@@ -345,13 +347,27 @@ int main(int argc, char *argv[]) { try {
 
 		initEntitiesFromNodes(spawners,
 			[&] (const std::string& name, gameObject::ptr& ptr) {
-				std::cerr << "have spawner node " << name << std::endl;
+				std::cerr << "have generator node " << name << std::endl;
 
 				auto gen = new generator(game->entities.get(),
 				                        ptr->getTransformTRS().position);
 				game->entities->add(gen);
 			});
 	});
+
+	view->level->addInit([=] () {
+		gameObject::ptr spawners = game->state->rootnode->getNode("blockades");
+
+		initEntitiesFromNodes(spawners,
+			[&] (const std::string& name, gameObject::ptr& ptr) {
+				std::cerr << "have blockade node " << name << std::endl;
+
+				auto gen = new blockade(game->entities.get(),
+				                        ptr->getTransformTRS().position);
+				game->entities->add(gen);
+			});
+	});
+
 
 	view->level->addDestructor([=] () {
 		// TODO: should just have reset function in entity manager
