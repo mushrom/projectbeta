@@ -5,6 +5,7 @@
 #include <components/healthbar.hpp>
 #include <entities/projectile.hpp>
 #include <entities/player.hpp>
+#include <entities/generator.hpp>
 #include "enemy.hpp"
 
 static channelBuffers_ptr sfx = nullptr;
@@ -80,11 +81,6 @@ enemy::enemy(entityManager *manager, entity *ent, nlohmann::json properties)
 	new projectileCollision(manager, this);
 	new syncRigidBodyXZVelocity(manager, this);
 	auto body = new rigidBodyCapsule(manager, this, node->getTransformTRS().position, 1.0, 1.0, 2.0);
-	/*
-	auto body = new rigidBodySphere(manager, this,
-	                                node->getTransformTRS().position,
-	                                1.0, 0.5);
-									*/
 
 	manager->registerComponent(this, this);
 
@@ -111,25 +107,25 @@ void enemy::update(entityManager *manager, float delta) {
 	glm::vec3 selfPos = node->getTransformTRS().position;
 
 	entity *playerEnt =
-		findNearest<player>(manager, node->getTransformTRS().position);
+		findNearest<generator>(manager, node->getTransformTRS().position);
 
 	if (playerEnt) {
 		playerPos = playerEnt->getNode()->getTransformTRS().position;
 	}
 
-	/*
 	// TODO: should this be a component, a generic chase implementation?
 	//       wrapping things in generic "behavior" components could be pretty handy...
 	glm::vec3 diff = playerPos - node->getTransformTRS().position;
 	glm::vec3 vel =  glm::normalize(glm::vec3(diff.x, 0, diff.z));
 
 
-	rigidBody *body = castEntityComponent<rigidBody*>(manager, this, "rigidBody");
+	rigidBody *body = getComponent<rigidBody>(manager, this);
 
 	if (body) {
 		body->phys->setAcceleration(10.f*vel);
 	}
-	*/
+
+#if 0
 	//rigidBody *body = castEntityComponent<rigidBody*>(manager, this, "rigidBody");
 	//health *hp = castEntityComponent<health*>(manager, this, "health");
 
@@ -179,6 +175,7 @@ void enemy::update(entityManager *manager, float delta) {
 		manager->engine->audio->add(ch);
 		lastSound = k;
 	}
+#endif
 }
 
 nlohmann::json enemy::serialize(entityManager *manager) {

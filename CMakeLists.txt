@@ -92,6 +92,7 @@ set(LANDSCAPE_DEMO_SRC
 	src/entities/enemySpawner.cpp
 	src/entities/enemyCollision.cpp
 	src/entities/flag.cpp
+	src/entities/generator.cpp
 	src/entities/player.cpp
 	src/entities/targetArea.cpp
 	src/entities/projectile.cpp

@@ -55,6 +55,7 @@ using namespace grendx::ecs;
 #include <entities/killedParticles.hpp>
 #include <entities/targetArea.hpp>
 #include <entities/amulet.hpp>
+#include <entities/generator.hpp>
 
 #include <logic/projalphaView.hpp>
 #include <logic/wfcGenerator.hpp>
@@ -150,6 +151,8 @@ int main(int argc, char *argv[]) { try {
 	renderSettings foo;
 	foo.scaleX = 0.5;
 	foo.scaleY = 0.5;
+	foo.windowResX = 2560;
+	foo.windowResY = 1440;
 	foo.fullscreen = false;
 	foo.UIScale = 2.0;
 
@@ -233,6 +236,17 @@ int main(int argc, char *argv[]) { try {
 	game->rend->lightThreshold = 0.2;
 
 #if defined(GAME_BUILD_DEBUG)
+	// XXX: bit of a hacky way to have more interactive map editing...
+	//      not the best, but it does the job
+	//
+	//      could do something like have a transform or sceneNode component,
+	//      and have the editor be able to work with those
+	game->addEditorCallback(
+		[=] (gameObject::ptr node, gameEditor::editAction action) {
+			SDL_Log("Got to the editor callback!");
+			view->level->reset();
+		});
+
 	// TODO: need some way to update world state when editor nodes
 	//       are added, could be as simple as a list of callback functions
 	//       that get called when adding nodes
@@ -322,8 +336,20 @@ int main(int argc, char *argv[]) { try {
 
 				auto en = new enemySpawner(game->entities.get(), game,
 										   ptr->getTransformTRS().position);
-				new team(game->entities.get(), en, "red");
 				game->entities->add(en);
+			});
+	});
+
+	view->level->addInit([=] () {
+		gameObject::ptr spawners = game->state->rootnode->getNode("generators");
+
+		initEntitiesFromNodes(spawners,
+			[&] (const std::string& name, gameObject::ptr& ptr) {
+				std::cerr << "have spawner node " << name << std::endl;
+
+				auto gen = new generator(game->entities.get(),
+				                        ptr->getTransformTRS().position);
+				game->entities->add(gen);
 			});
 	});
 
@@ -353,8 +379,11 @@ int main(int argc, char *argv[]) { try {
 				*/
 			std::set<entity*> players
 				= searchEntities(game->entities.get(), {getTypeName<player>()});
+			std::set<entity*> generators
+				= searchEntities(game->entities.get(), {getTypeName<generator>()});
 
-			return std::pair<bool, std::string>(players.size() == 0, "lol u died");
+			bool lost = players.size() == 0 || generators.size() == 0;
+			return std::pair<bool, std::string>(lost, "lol u died");
 		});
 
 	SDL_Log("Got to game->run()! mapfile: %s\n", mapfile);
@@ -382,7 +411,6 @@ int main(int argc, char *argv[]) { try {
 			SDL_Log("Unknown test '%s', counting that as an error...", target);
 			return 1;
 		}
-
 
 	} else {
 		SDL_Log("No test configured, running normally");
