@@ -834,6 +834,8 @@ void projalphaView::drawWinScreen(gameMain *game, int wx, int wy) {
 void projalphaView::drawTileDebug(gameMain *game) {
 	entity *playerEnt = findFirstTypes<player, inventory>(game->entities.get());
 
+	return;
+#if 0
 	auto floor = getFloor(game, currentFloor);
 	// XXX: don't like this one bit
 	if (!floor) return;
@@ -890,9 +892,11 @@ void projalphaView::drawTileDebug(gameMain *game) {
 			}
 		}
 	}
+#endif
 }
 
 void projalphaView::drawNavPrompts(gameMain *game, int wx, int wy) {
+#if 0
 	int xpos = wx/2 - 64;
 
 	if (nearNode(game, "exit") || nearNode(game, "entry")) {
@@ -924,4 +928,5 @@ void projalphaView::drawNavPrompts(gameMain *game, int wx, int wy) {
 		}
 	}
 	nk_end(nk_ctx);
+#endif
 }

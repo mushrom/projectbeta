@@ -21,21 +21,19 @@ blockade::blockade(entityManager *manager, const glm::vec3& position)
 		enemyModel = data;
 		//sfx = openAudio(DEMO_PREFIX "assets/sfx/mnstr7.ogg");
 
-		TRS transform = enemyModel->getTransformTRS();
-		transform.scale = glm::vec3(1, 2, 1);
-		enemyModel->setTransform(transform);
+		enemyModel->setScale(glm::vec3(1, 2, 1));
 	}
 
-	TRS transform = node->getTransformTRS();
-	transform.position = position;
-	node->setTransform(transform);
+	node->setPosition(position);
 
 	manager->registerComponent(this, this);
-	new health(manager, this, 1.f, 1000);
-	new worldHealthbar(manager, this);
-	new syncRigidBodyXZVelocity(manager, this);
-	new enemyCollision(manager, this);
-	auto body = new rigidBodyBox(manager, this, transform.position, 100.0, AABBExtent(glm::vec3(0, 1, 0), glm::vec3(0.5, 1, 0.5)));
+	attach<health>(1.f, 1000);
+	attach<worldHealthbar>();
+	attach<syncRigidBodyXZVelocity>();
+	attach<enemyCollision>();
+	auto body = attach<rigidBodyBox>(position, 100.0,
+	                                 AABBExtent(glm::vec3(0, 1, 0),
+	                                            glm::vec3(0.5, 1, 0.5)));
 
 	setNode("model", node, enemyModel);
 	body->registerCollisionQueue(manager->collisions);

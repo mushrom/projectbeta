@@ -214,6 +214,7 @@ projalphaView::projalphaView(gameMain *game)
 	: gameView(),
 	  level(new levelController)
 {
+	/*
 	tunnelSpec = std::make_shared<wfcSpec>(
 		game,
 		DEMO_PREFIX "assets/obj/catacomb-tiles/wfc-config.json"
@@ -223,6 +224,7 @@ projalphaView::projalphaView(gameMain *game)
 	// XXX: all using the same spec for now 
 	bunkerSpec = guildSpec = cultSpec = cellarSpec
 		= ossuarySpec = troveSpec = tunnelSpec;
+	*/
 
     //ctx = nk_sdl_init(win);
     nk_ctx = nk_sdl_init(game->ctx.window);
@@ -241,7 +243,7 @@ projalphaView::projalphaView(gameMain *game)
 		struct nk_font_atlas *atlas;
 		nk_sdl_font_stash_begin(&atlas);
 		struct nk_font *roboto;
-		roboto = nk_font_atlas_add_from_file(atlas, GR_PREFIX "assets/fonts/Roboto-Regular.ttf", 16, 0);
+		roboto = nk_font_atlas_add_from_file(atlas, GR_PREFIX "assets/fonts/Roboto-Regular.ttf", 48, 0);
 		/*struct nk_font *droid = nk_font_atlas_add_from_file(atlas, "../../../extra_font/DroidSans.ttf", 14, 0);*/
 		/*struct nk_font *roboto = nk_font_atlas_add_from_file(atlas, "../../../extra_font/Roboto-Regular.ttf", 16, 0);*/
 		/*struct nk_font *future = nk_font_atlas_add_from_file(atlas, "../../../extra_font/kenvector_future_thin.ttf", 13, 0);*/

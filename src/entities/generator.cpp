@@ -21,22 +21,17 @@ generator::generator(entityManager *manager, const glm::vec3& position)
 		enemyModel = data;
 		//sfx = openAudio(DEMO_PREFIX "assets/sfx/mnstr7.ogg");
 
-		TRS transform = enemyModel->getTransformTRS();
-		transform.scale = glm::vec3(0.25);
-		enemyModel->setTransform(transform);
+		enemyModel->setScale(glm::vec3(0.25));
 	}
 
-	TRS transform = node->getTransformTRS();
-	transform.position = position;
-	node->setTransform(transform);
+	node->setPosition(position);
 
 	manager->registerComponent(this, this);
-	new health(manager, this);
-	new worldHealthbar(manager, this);
-	new projectileCollision(manager, this);
-	new syncRigidBodyXZVelocity(manager, this);
-	new enemyCollision(manager, this);
-	auto body = new rigidBodySphere(manager, this, transform.position, 1.0, 1.0);
+	attach<health>();
+	attach<worldHealthbar>();
+	attach<syncRigidBodyXZVelocity>();
+	attach<enemyCollision>();
+	auto body = attach<rigidBodySphere>(position, 1.0, 1.0);
 
 	setNode("model", node, enemyModel);
 	body->registerCollisionQueue(manager->collisions);
