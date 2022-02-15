@@ -10,7 +10,7 @@ class inventory : public component {
 	public:
 		constexpr static const char *serializedType = "inventory";
 
-		inventory(entityManager *manager, entity *ent, nlohmann::json properties)
+		inventory(entityManager *manager, entity *ent, nlohmann::json properties = {})
 			: component(manager, ent)
 		{
 			manager->registerComponent(ent, this);

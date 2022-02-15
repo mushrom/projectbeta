@@ -12,7 +12,7 @@ class playerInfo : public component {
 	public:
 		playerInfo(entityManager *manager,
 		           entity *ent,
-		           nlohmann::json properties)
+		           nlohmann::json properties = {})
 			: component(manager, ent)
 		{
 			manager->registerComponent(ent, this);

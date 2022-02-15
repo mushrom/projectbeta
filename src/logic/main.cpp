@@ -72,6 +72,11 @@ struct grendDirEnt {
 	bool isFile;
 };
 
+template <typename... T>
+std::vector<const char *> getTypeNames() {
+	return { getTypeName<T>()... };
+}
+
 static std::vector<grendDirEnt> listdir(std::string path) {
 	std::vector<grendDirEnt> ret;
 
@@ -120,11 +125,15 @@ void initEntitiesFromNodes(gameObject::ptr node,
 	}
 }
 
+void addLevelInitializers(gameMain *game, projalphaView::ptr view);
+int runTests(gameMain *game, projalphaView::ptr view, const char *target);
+
 #include <logic/tests/tests.hpp>
 
 // XXX: global, TODO REMOVE FOR REAL AAAAAAAAA
 struct nk_image fooimg;
 
+// TODO: code is garbage
 #if defined(_WIN32)
 extern "C" {
 //int WinMain(int argc, char *argv[]);
@@ -195,7 +204,7 @@ int main(int argc, char *argv[]) { try {
 	});
 	*/
 
-#if 1
+#if 0
 	/*
 	game->jobs->addAsync([=] {
 		auto msc = openAudio("/tmp/Kyuss.ogg");
@@ -260,32 +269,56 @@ int main(int argc, char *argv[]) { try {
 	});
 #endif
 
-	view->level->addInit([=] () {
-		//view->wfcgen->generate(game, {});
-	});
+	addLevelInitializers(game, view);
 
+	SDL_Log("Got to game->run()! mapfile: %s\n", mapfile);
+	auto mapdata = loadMapCompiled(game, mapfile);
+	game->state->rootnode = mapdata;
+	setNode("entities", game->state->rootnode, game->entities->root);
+
+	std::vector<physicsObject::ptr> mapPhysics;
+	game->phys->addStaticModels(nullptr,
+								mapdata,
+								TRS(),
+								mapPhysics);
+
+	if (const char *target = getenv("GREND_TEST_TARGET")) {
+		return runTests(game, view, target);
+
+	} else {
+		SDL_Log("No test configured, running normally");
+		game->run();
+	}
+
+	return 0;
+
+} catch (const std::exception& ex) {
+	SDL_LogError(SDL_LOG_CATEGORY_ERROR, "Exception! %s", ex.what());
+	return 1;
+
+} catch (const char* ex) {
+	SDL_LogError(SDL_LOG_CATEGORY_ERROR, "Exception! %s", ex);
+	return 1;
+}
+}
+
+void addLevelInitializers(gameMain *game, projalphaView::ptr view) {
 	view->level->addInit([=] () {
 		entity *playerEnt;
 		glm::vec3 pos(-5, 20, -5);
 
-		/*
-		auto floor = view->getFloor(game, view->currentFloor);
-		if (floor) {
-			pos = floor->entrance;
-		}
-		*/
-
 		playerEnt = new player(game->entities.get(), game, pos);
 		game->entities->add(playerEnt);
-		//new generatorEventHandler(game->entities.get(), playerEnt);
-		new health(game->entities.get(), playerEnt);
-		new enemyCollision(game->entities.get(), playerEnt);
-		new healthPickupCollision(game->entities.get(), playerEnt);
-		new flagPickup(game->entities.get(), playerEnt);
-		new team(game->entities.get(), playerEnt, "blue");
-		new areaAddScore(game->entities.get(), playerEnt, {});
-		new playerInfo(game->entities.get(), playerEnt, {});
-		inventory *inv = new inventory(game->entities.get(), playerEnt, {});
+
+		playerEnt->attach<health>();
+		playerEnt->attach<enemyCollision>();
+		playerEnt->attach<healthPickupCollision>();
+		playerEnt->attach<playerInfo>();
+		inventory *inv = playerEnt->attach<inventory>();
+
+		playerEnt->attach<pickupAction>( getTypeNames<amuletPickup>() );
+		playerEnt->attach<pickupAction>( getTypeNames<pickup>() );
+		playerEnt->attach<autopickupAction>( getTypeNames<autopickup>() );
 
 		// start with 5 flares
 		for (int i = 0; i < 5; i++) {
@@ -301,13 +334,6 @@ int main(int argc, char *argv[]) { try {
 			inv->insert(game->entities.get(), bullet);
 		}
 
-		//new pickupAction(game->entities.get(), playerEnt, {"amuletPickup"});
-		//new pickupAction(game->entities.get(), playerEnt, {"pickup"});
-		//new autopickupAction(game->entities.get(), playerEnt, {"autopickup"});
-		new pickupAction(game->entities.get(), playerEnt, { getTypeName<amuletPickup>() });
-		new pickupAction(game->entities.get(), playerEnt, { getTypeName<pickup>() });
-		new autopickupAction(game->entities.get(), playerEnt, { getTypeName<autopickup>() });
-
 #if defined(__ANDROID__)
 		int wx = game->rend->screen_x;
 		int wy = game->rend->screen_y;
@@ -320,13 +346,9 @@ int main(int argc, char *argv[]) { try {
 								 view->inputSystem->inputs, actionpad, 150.f);
 
 #else
-		new mouseRotationPoller(game->entities.get(), playerEnt, view->cam);
+		playerEnt->attach<mouseRotationPoller>(view->cam);
+		//new mouseRotationPoller(game->entities.get(), playerEnt, view->cam);
 #endif
-	});
-
-	view->level->addInit([=] () {
-		view->currentFloor = -1;
-		view->incrementFloor(game, 1);
 	});
 
 	view->level->addInit([=] () {
@@ -389,10 +411,6 @@ int main(int argc, char *argv[]) { try {
 
 	view->level->addLoseCondition(
 		[=] () {
-		/*
-			std::set<entity*> players
-				= searchEntities(game->entities.get(), {"player"});
-				*/
 			std::set<entity*> players
 				= searchEntities(game->entities.get(), {getTypeName<player>()});
 			std::set<entity*> generators
@@ -402,45 +420,18 @@ int main(int argc, char *argv[]) { try {
 			return std::pair<bool, std::string>(lost, "lol u died");
 		});
 
-	SDL_Log("Got to game->run()! mapfile: %s\n", mapfile);
-	//view->load(game, mapfile);
-	auto mapdata = loadMapCompiled(game, mapfile);
-	game->state->rootnode = mapdata;
-	//setNode("asdf", game->state->rootnode, mapdata);
-	setNode("entities", game->state->rootnode, game->entities->root);
+}
 
-	std::vector<physicsObject::ptr> mapPhysics;
-	game->phys->addStaticModels(nullptr,
-								mapdata,
-								TRS(),
-								mapPhysics);
+int runTests(gameMain *game, projalphaView::ptr view, const char *target) {
+	SDL_Log("Got a test target!");
 
-	if (char *target = getenv("GREND_TEST_TARGET")) {
-		SDL_Log("Got a test target!");
-
-		if (strcmp(target, "default") == 0) {
-			//view->setMode(projalphaView::modes::Move);
-			bool result = tests::defaultTest(game, view);
-			SDL_Log("Test '%s' %s.", target, result? "passed" : "failed");
-
-		} else {
-			SDL_Log("Unknown test '%s', counting that as an error...", target);
-			return 1;
-		}
+	if (strcmp(target, "default") == 0) {
+		//view->setMode(projalphaView::modes::Move);
+		bool result = tests::defaultTest(game, view);
+		SDL_Log("Test '%s' %s.", target, result? "passed" : "failed");
 
 	} else {
-		SDL_Log("No test configured, running normally");
-		game->run();
+		SDL_Log("Unknown test '%s', counting that as an error...", target);
+		return 1;
 	}
-
-	return 0;
-
-} catch (const std::exception& ex) {
-	SDL_LogError(SDL_LOG_CATEGORY_ERROR, "Exception! %s", ex.what());
-	return 1;
-
-} catch (const char* ex) {
-	SDL_LogError(SDL_LOG_CATEGORY_ERROR, "Exception! %s", ex);
-	return 1;
-}
 }
