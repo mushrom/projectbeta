@@ -21,14 +21,16 @@ class animatedCharacter {
 		typedef std::shared_ptr<animatedCharacter> ptr;
 		typedef std::weak_ptr<animatedCharacter>   weakptr;
 
-		animatedCharacter(gameObject::ptr objs);
+		animatedCharacter(gameImport::ptr objs);
 		void setAnimation(std::string animation, float weight = 1.0);
 		gameObject::ptr getObject(void);
+		void update(float delta);
 
 	private:
 		animationCollection::ptr animations;
-		std::string currentAnimation;
-		gameObject::ptr objects;
+		animationMap::ptr currentAnimation;
+		//std::string currentAnimation;
+		gameImport::ptr objects;
 };
 
 class player : public entity, public updatable {
