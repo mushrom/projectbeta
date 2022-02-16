@@ -48,8 +48,32 @@ void applyAnimation(gameObject::ptr node, animationMap::ptr anim, float time) {
 }
 
 animatedCharacter::animatedCharacter(gameImport::ptr objs) {
+	// TODO: should copy this as part of duplicating a gameImport
+	/*
+	animations = std::make_shared<animationCollection>();
+
+	for (auto& [name, anims] : objs->animations) {
+		(*animations)[name] = anims;
+	}
+	*/
+
 	animations = objs->animations;
 	objects = objs;
+
+#if 1
+	for (auto& [name, _] : *animations) {
+		SDL_Log("Have animation: '%s'", name.c_str());
+	}
+#endif
+}
+
+void animatedCharacter::bind(std::string name, animationMap::ptr anim) {
+	if (!animations) {
+		SDL_Log("No animation collection set!");
+		return;
+	}
+
+	animations->insert({name, anim});
 }
 
 gameObject::ptr animatedCharacter::getObject(void) {
@@ -58,6 +82,11 @@ gameObject::ptr animatedCharacter::getObject(void) {
 
 // TODO: might as well have a resource component
 static gameImport::ptr playerModel = nullptr;
+static gameImport::ptr animfile = nullptr;
+static gameImport::ptr idlefile = nullptr;
+static gameImport::ptr rightfile = nullptr;
+static gameImport::ptr leftfile = nullptr;
+static gameImport::ptr backfile = nullptr;
 
 player::player(entityManager *manager, gameMain *game, glm::vec3 position)
 	: entity(manager)
@@ -74,11 +103,17 @@ player::player(entityManager *manager, gameMain *game, glm::vec3 position)
 	manager->registerInterface<updatable>(this, this);
 
 	if (!playerModel) {
+		animfile = loadSceneCompiled("/tmp/running.glb");
+		idlefile = loadSceneCompiled("/tmp/idle.glb");
+		leftfile = loadSceneCompiled("/tmp/runleft.glb");
+		rightfile = loadSceneCompiled("/tmp/runright.glb");
+		backfile = loadSceneCompiled("/tmp/runbackwards.glb");
+
 		// TODO: resource cache
 		//playerModel = loadScene(GR_PREFIX "assets/obj/TestGuy/rigged-lowpolyguy.glb");
 		SDL_Log("Loading player model...");
-		playerModel = loadSceneCompiled(DEMO_PREFIX "assets/obj/buff-dude-testanim.glb");
-		//playerModel = loadSceneCompiled(DEMO_PREFIX "assets/obj/trooper.glb");
+		//playerModel = loadSceneCompiled(DEMO_PREFIX "assets/obj/buff-dude-testanim.glb");
+		playerModel = loadSceneCompiled(DEMO_PREFIX "assets/obj/trooper.glb");
 		//playerModel = loadSceneCompiled(DEMO_PREFIX "assets/obj/ld48/player-cursor.glb");
 		//playerModel = loadSceneCompiled("/home/flux/blender/objects/lowpoly-cc0-guy/low-poly-cc0-guy-fixedimport.gltf");
 
@@ -129,12 +164,24 @@ player::player(entityManager *manager, gameMain *game, glm::vec3 position)
 	//setNode("pointlight", node, plit);
 	character = std::make_shared<animatedCharacter>(playerModel);
 	//character->setAnimation("idle");
+	auto& foo   = animfile->animations->begin()->second;
+	auto& id    = idlefile->animations->begin()->second;
+	auto& left  = leftfile->animations->begin()->second;
+	auto& right = rightfile->animations->begin()->second;
+	auto& back  = backfile->animations->begin()->second;
+
+	character->bind("walking", foo);
+	character->bind("idle",    id);
+	character->bind("left",    left);
+	character->bind("right",   right);
+	character->bind("back",    back);
 
 	body->registerCollisionQueue(manager->collisions);
 	auto [name, _] = *playerModel->animations->begin();
 
 	character->setAnimation(name);
 }
+
 
 player::player(entityManager *manager,
                entity *ent,
@@ -199,7 +246,40 @@ void player::update(entityManager *manager, float delta) {
 	glm::vec3 vel = body->phys->getVelocity();
 	if (glm::length(vel) < 2.0) {
 		character->setAnimation("idle");
+
 	} else {
-		character->setAnimation("walking");
+		glm::mat4 rot = glm::mat4_cast(node->getTransformTRS().rotation);
+		glm::vec4 forwardv = rot * glm::vec4( 1, 0, 0, 0);
+		glm::vec4 backv    = rot * glm::vec4(-1, 0, 0, 0);
+		glm::vec4 leftv    = rot * glm::vec4( 0, 0,-1, 0);
+		glm::vec4 rightv   = rot * glm::vec4( 0, 0, 1, 0);
+
+		glm::vec3 normvel = glm::normalize(vel);
+		glm::vec3 forward = glm::vec3(forwardv);
+		glm::vec3 back = glm::vec3(backv);
+		glm::vec3 left = glm::vec3(leftv);
+		glm::vec3 right = glm::vec3(rightv);
+
+		float max = -1;
+		std::string anim = "walking";
+
+		auto test = [&] (glm::vec3& vec) {
+			float dot = glm::dot(vec, normvel);
+
+			if (dot > max) {
+				max = dot;
+				return true;
+			}
+
+			return false;
+		};
+
+		if (test(forward)) anim = "walking";
+		if (test(back))    anim = "back";
+
+		if (test(left))    anim = "left";
+		if (test(right))   anim = "right";
+
+		character->setAnimation(anim);
 	}
 }

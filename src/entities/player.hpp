@@ -26,6 +26,10 @@ class animatedCharacter {
 		gameObject::ptr getObject(void);
 		void update(float delta);
 
+		// bind an animation to a name
+		// the animation can be from another animation collection
+		void bind(std::string name, animationMap::ptr anim);
+
 	private:
 		animationCollection::ptr animations;
 		animationMap::ptr currentAnimation;
