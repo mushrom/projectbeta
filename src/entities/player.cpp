@@ -87,6 +87,7 @@ static gameImport::ptr idlefile = nullptr;
 static gameImport::ptr rightfile = nullptr;
 static gameImport::ptr leftfile = nullptr;
 static gameImport::ptr backfile = nullptr;
+static gameImport::ptr fallfile = nullptr;
 
 player::player(entityManager *manager, gameMain *game, glm::vec3 position)
 	: entity(manager)
@@ -108,6 +109,7 @@ player::player(entityManager *manager, gameMain *game, glm::vec3 position)
 		leftfile = loadSceneCompiled("/tmp/runleft.glb");
 		rightfile = loadSceneCompiled("/tmp/runright.glb");
 		backfile = loadSceneCompiled("/tmp/runbackwards.glb");
+		fallfile = loadSceneCompiled("/tmp/falling.glb");
 
 		// TODO: resource cache
 		//playerModel = loadScene(GR_PREFIX "assets/obj/TestGuy/rigged-lowpolyguy.glb");
@@ -169,12 +171,14 @@ player::player(entityManager *manager, gameMain *game, glm::vec3 position)
 	auto& left  = leftfile->animations->begin()->second;
 	auto& right = rightfile->animations->begin()->second;
 	auto& back  = backfile->animations->begin()->second;
+	auto& fall  = fallfile->animations->begin()->second;
 
 	character->bind("walking", foo);
 	character->bind("idle",    id);
 	character->bind("left",    left);
 	character->bind("right",   right);
 	character->bind("back",    back);
+	character->bind("falling", fall);
 
 	body->registerCollisionQueue(manager->collisions);
 	auto [name, _] = *playerModel->animations->begin();
@@ -207,7 +211,9 @@ player::player(entityManager *manager,
 		SDL_Log("got player model");
 	}
 
-	setNode("model", node, playerModel);
+	auto temp = duplicate(playerModel);
+	setNode("model", node, temp);
+	//setNode("model", node, playerModel);
 	//setNode("light", node, std::make_shared<gameLightPoint>());
 	//setNode("light", node, std::make_shared<gameLightPoint>());
 	//auto lit = std::make_shared<gameLightPoint>();
@@ -228,8 +234,15 @@ player::player(entityManager *manager,
 }
 
 void animatedCharacter::update(float delta) {
-	float time = SDL_GetTicks() / 1000.f;
-	applyAnimation(objects, currentAnimation, time);
+	if (!currentAnimation) return;
+
+	//float time = SDL_GetTicks() / 1000.f;
+	animTime = fmod(animTime + delta*animSpeed, currentAnimation->endtime);
+	applyAnimation(objects, currentAnimation, animTime);
+}
+
+void animatedCharacter::setSpeed(float speed) {
+	animSpeed = speed;
 }
 
 nlohmann::json player::serialize(entityManager *manager) {
@@ -246,6 +259,7 @@ void player::update(entityManager *manager, float delta) {
 	glm::vec3 vel = body->phys->getVelocity();
 	if (glm::length(vel) < 2.0) {
 		character->setAnimation("idle");
+		character->setSpeed(1.0);
 
 	} else {
 		glm::mat4 rot = glm::mat4_cast(node->getTransformTRS().rotation);
@@ -259,6 +273,7 @@ void player::update(entityManager *manager, float delta) {
 		glm::vec3 back = glm::vec3(backv);
 		glm::vec3 left = glm::vec3(leftv);
 		glm::vec3 right = glm::vec3(rightv);
+		glm::vec3 down = glm::vec3(0, -1, 0);
 
 		float max = -1;
 		std::string anim = "walking";
@@ -276,10 +291,11 @@ void player::update(entityManager *manager, float delta) {
 
 		if (test(forward)) anim = "walking";
 		if (test(back))    anim = "back";
-
 		if (test(left))    anim = "left";
 		if (test(right))   anim = "right";
+		if (test(down))    anim = "falling";
 
 		character->setAnimation(anim);
+		character->setSpeed(glm::length(vel) / 16.0);
 	}
 }

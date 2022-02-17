@@ -29,8 +29,12 @@ class animatedCharacter {
 		// bind an animation to a name
 		// the animation can be from another animation collection
 		void bind(std::string name, animationMap::ptr anim);
+		void setSpeed(float speed);
 
 	private:
+		float animTime = 0;
+		float animSpeed = 1.0;
+
 		animationCollection::ptr animations;
 		animationMap::ptr currentAnimation;
 		//std::string currentAnimation;
