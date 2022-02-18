@@ -8,6 +8,8 @@
 #include <grend/ecs/rigidBody.hpp>
 #include <grend/ecs/collision.hpp>
 
+#include <logic/animationController.hpp>
+
 using namespace grendx;
 using namespace grendx::ecs;
 
@@ -38,6 +40,8 @@ class enemy : public entity, public updatable {
 
 		uint32_t lastSound = 0;
 		uint32_t xxxid = 0;
+
+		animationController::ptr character;
 };
 
 class noodler : public enemy /* #1 */ {

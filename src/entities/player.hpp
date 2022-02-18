@@ -10,36 +10,10 @@
 
 #include <components/boxSpawner.hpp>
 #include <components/inputHandler.hpp>
+#include <logic/animationController.hpp>
 
 using namespace grendx;
 using namespace grendx::ecs;
-
-animationCollection::ptr findAnimations(gameObject::ptr obj);
-
-class animatedCharacter {
-	public:
-		typedef std::shared_ptr<animatedCharacter> ptr;
-		typedef std::weak_ptr<animatedCharacter>   weakptr;
-
-		animatedCharacter(gameImport::ptr objs);
-		void setAnimation(std::string animation, float weight = 1.0);
-		gameObject::ptr getObject(void);
-		void update(float delta);
-
-		// bind an animation to a name
-		// the animation can be from another animation collection
-		void bind(std::string name, animationMap::ptr anim);
-		void setSpeed(float speed);
-
-	private:
-		float animTime = 0;
-		float animSpeed = 1.0;
-
-		animationCollection::ptr animations;
-		animationMap::ptr currentAnimation;
-		//std::string currentAnimation;
-		gameImport::ptr objects;
-};
 
 class player : public entity, public updatable {
 	public:
@@ -50,7 +24,7 @@ class player : public entity, public updatable {
 		virtual void update(entityManager *manager, float delta);
 		virtual gameObject::ptr getNode(void) { return node; };
 
-		animatedCharacter::ptr character;
+		animationController::ptr character;
 
 		// serialization stuff
 		constexpr static const char *serializedType = "player";

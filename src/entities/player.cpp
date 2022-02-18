@@ -4,82 +4,6 @@
 
 player::~player() {};
 
-void animatedCharacter::setAnimation(std::string animation, float weight) {
-	auto it = animations->find(animation);
-	SDL_Log("setting animation '%s'!", animation.c_str());
-
-	if (it != animations->end()) {
-		currentAnimation = it->second;
-
-	} else {
-		SDL_Log("WARNING: setting nonexistant animation '%s'!", animation.c_str());
-	}
-}
-
-// TODO: move to engine code somewhere
-void applyAnimation(gameObject::ptr node, animationMap::ptr anim, float time) {
-	if (node == nullptr || anim == nullptr) {
-		return;
-	}
-
-	auto chans = anim->find(node->animChannel);
-
-	if (chans != anim->end()) {
-		TRS t = node->getOrigTransform();
-
-		for (auto& ch : chans->second) {
-			//SDL_Log("Have animation channel %08x", node->animChannel);
-			ch->applyTransform(t, time, anim->endtime);
-		}
-
-		node->setTransform(t);
-	}
-
-	for (auto& [name, subnode] : node->nodes) {
-		std::string asdf = name.substr(name.find(':') + 1);
-		/*
-		SDL_Log("sub node: %s:%08x -> %08x",
-			asdf.c_str(),
-			(uint32_t)std::hash<std::string>{}(asdf),
-			subnode->animChannel);
-			*/
-		applyAnimation(subnode, anim, time);
-	}
-}
-
-animatedCharacter::animatedCharacter(gameImport::ptr objs) {
-	// TODO: should copy this as part of duplicating a gameImport
-	/*
-	animations = std::make_shared<animationCollection>();
-
-	for (auto& [name, anims] : objs->animations) {
-		(*animations)[name] = anims;
-	}
-	*/
-
-	animations = objs->animations;
-	objects = objs;
-
-#if 1
-	for (auto& [name, _] : *animations) {
-		SDL_Log("Have animation: '%s'", name.c_str());
-	}
-#endif
-}
-
-void animatedCharacter::bind(std::string name, animationMap::ptr anim) {
-	if (!animations) {
-		SDL_Log("No animation collection set!");
-		return;
-	}
-
-	animations->insert({name, anim});
-}
-
-gameObject::ptr animatedCharacter::getObject(void) {
-	return objects;
-}
-
 // TODO: might as well have a resource component
 static gameImport::ptr playerModel = nullptr;
 static gameImport::ptr animfile = nullptr;
@@ -133,10 +57,13 @@ player::player(entityManager *manager, gameMain *game, glm::vec3 position)
 		SDL_Log("got player model");
 	}
 
+	auto temp = std::static_pointer_cast<gameImport>(duplicate(playerModel));
+	character = std::make_shared<animationController>(temp);
+
 	//TRS transform = node->getTransformTRS();
 	//transform.position = position;
 	//node->setTransform(transform);
-	setNode("model", node, playerModel);
+	setNode("model", node, temp);
 	//setNode("light", node, std::make_shared<gameLightPoint>());
 	//setNode("light", node, std::make_shared<gameLightPoint>());
 	//auto lit = std::make_shared<gameLightPoint>();
@@ -164,7 +91,6 @@ player::player(entityManager *manager, gameMain *game, glm::vec3 position)
 
 	setNode("spotlight", node, lit);
 	//setNode("pointlight", node, plit);
-	character = std::make_shared<animatedCharacter>(playerModel);
 	//character->setAnimation("idle");
 	auto& foo   = animfile->animations->begin()->second;
 	auto& id    = idlefile->animations->begin()->second;
@@ -181,9 +107,9 @@ player::player(entityManager *manager, gameMain *game, glm::vec3 position)
 	character->bind("falling", fall);
 
 	body->registerCollisionQueue(manager->collisions);
-	auto [name, _] = *playerModel->animations->begin();
+	//auto [name, _] = *playerModel->animations->begin();
 
-	character->setAnimation(name);
+	//character->setAnimation(name);
 }
 
 
@@ -211,7 +137,7 @@ player::player(entityManager *manager,
 		SDL_Log("got player model");
 	}
 
-	auto temp = duplicate(playerModel);
+	auto temp = std::static_pointer_cast<gameImport>(duplicate(playerModel));
 	setNode("model", node, temp);
 	//setNode("model", node, playerModel);
 	//setNode("light", node, std::make_shared<gameLightPoint>());
@@ -227,22 +153,10 @@ player::player(entityManager *manager,
 	lit->is_static = false;
 	lit->casts_shadows = true;
 	setNode("light", node, lit);
-	character = std::make_shared<animatedCharacter>(playerModel);
+	character = std::make_shared<animationController>(temp);
 
 	auto [name, _] = *playerModel->animations->begin();
 	character->setAnimation(name);
-}
-
-void animatedCharacter::update(float delta) {
-	if (!currentAnimation) return;
-
-	//float time = SDL_GetTicks() / 1000.f;
-	animTime = fmod(animTime + delta*animSpeed, currentAnimation->endtime);
-	applyAnimation(objects, currentAnimation, animTime);
-}
-
-void animatedCharacter::setSpeed(float speed) {
-	animSpeed = speed;
 }
 
 nlohmann::json player::serialize(entityManager *manager) {
