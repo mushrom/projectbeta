@@ -19,13 +19,10 @@ class Wieldable : public Action {
 		virtual ~Wieldable();
 
 		virtual void action(entityManager *manager, entity *ent) const {
-			SDL_Log("Got here, at Wieldable::action()!");
 			entity *self = manager->getEntity((component*)this);
-			//Action *act = castEntityComponent<Action*>(manager, self, wieldAction);
 			Action *act = getComponent<Action>(manager, self, wieldAction);
 
 			if (act) {
-				SDL_Log("Wieldable::action() calling subaction %s...", wieldAction);
 				act->action(manager, ent);
 
 			} else {

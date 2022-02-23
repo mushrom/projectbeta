@@ -37,18 +37,11 @@ class enemyCollision : public collisionHandler {
 				return;
 			}
 
-			std::cerr << "enemy collision!" << std::endl;
 			lastCollision = ticks;
-			health *entHealth = getComponent<health>(manager, ent);
-			/*
-			health *entHealth;
-
-			castEntityComponent(entHealth, manager, ent, "health");
-			*/
+			health *entHealth = ent->get<health>();
 
 			if (entHealth) {
 				float x = entHealth->damage(damage);
-				std::cerr << "current health: " << x << std::endl;
 
 				if (x == 0.f) {
 					manager->remove(ent);
