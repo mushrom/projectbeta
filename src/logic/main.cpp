@@ -125,6 +125,25 @@ void initEntitiesFromNodes(gameObject::ptr node,
 	}
 }
 
+template <typename T>
+void addEntityNodes(levelController *controller, gameMain *game) {
+	controller->addInit([=] () {
+		const std::string& entname = demangle(getTypeName<T>());
+		gameObject::ptr node = game->state->rootnode->getNode(entname);
+		SDL_Log("Testing this '%s':%p", entname.c_str(), node.get());
+
+		initEntitiesFromNodes(node,
+			[&] (const std::string& name, gameObject::ptr& ptr) {
+				auto en = new T(game->entities.get(), ptr->getTransformTRS().position);
+				game->entities->add(en);
+
+				updateEntityTransforms(game->entities.get(), en, ptr->getTransformTRS());
+				en->node->setTransform(ptr->getTransformTRS());
+			}
+		);
+	});
+}
+
 void addLevelInitializers(gameMain *game, projalphaView::ptr view);
 int runTests(gameMain *game, projalphaView::ptr view, const char *target);
 
@@ -351,45 +370,9 @@ void addLevelInitializers(gameMain *game, projalphaView::ptr view) {
 #endif
 	});
 
-	view->level->addInit([=] () {
-		gameObject::ptr spawners = game->state->rootnode->getNode("spawners");
-
-		initEntitiesFromNodes(spawners,
-			[&] (const std::string& name, gameObject::ptr& ptr) {
-				std::cerr << "have spawner node " << name << std::endl;
-
-				auto en = new enemySpawner(game->entities.get(), game,
-										   ptr->getTransformTRS().position);
-				game->entities->add(en);
-			});
-	});
-
-	view->level->addInit([=] () {
-		gameObject::ptr spawners = game->state->rootnode->getNode("generators");
-
-		initEntitiesFromNodes(spawners,
-			[&] (const std::string& name, gameObject::ptr& ptr) {
-				std::cerr << "have generator node " << name << std::endl;
-
-				auto gen = new generator(game->entities.get(),
-				                        ptr->getTransformTRS().position);
-				game->entities->add(gen);
-			});
-	});
-
-	view->level->addInit([=] () {
-		gameObject::ptr spawners = game->state->rootnode->getNode("blockades");
-
-		initEntitiesFromNodes(spawners,
-			[&] (const std::string& name, gameObject::ptr& ptr) {
-				std::cerr << "have blockade node " << name << std::endl;
-
-				auto gen = new blockade(game->entities.get(),
-				                        ptr->getTransformTRS().position);
-				game->entities->add(gen);
-			});
-	});
-
+	addEntityNodes<enemySpawner>(view->level.get(), game);
+	addEntityNodes<generator>(view->level.get(), game);
+	addEntityNodes<blockade>(view->level.get(), game);
 
 	view->level->addDestructor([=] () {
 		// TODO: should just have reset function in entity manager

@@ -15,7 +15,7 @@ class enemySpawner : public entity, public updatable {
 	float lastSpawn = 0;
 
 	public:
-		enemySpawner(entityManager *manager, gameMain *game, glm::vec3 position);
+		enemySpawner(entityManager *manager, glm::vec3 position);
 		enemySpawner(entityManager *manager, entity *ent, nlohmann::json properties);
 		virtual ~enemySpawner();
 		virtual void update(entityManager *manager, float delta);

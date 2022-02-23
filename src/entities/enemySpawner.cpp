@@ -10,7 +10,7 @@
 
 enemySpawner::~enemySpawner() {};
 
-enemySpawner::enemySpawner(entityManager *manager, gameMain *game, glm::vec3 position) 
+enemySpawner::enemySpawner(entityManager *manager, glm::vec3 position)
 	: entity(manager)
 {
 	static gameObject::ptr spawnerModel = nullptr;
