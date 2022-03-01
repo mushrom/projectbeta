@@ -4,36 +4,51 @@
 
 player::~player() {};
 
-// TODO: might as well have a resource component
 static gameImport::ptr playerModel = nullptr;
-static gameImport::ptr animfile = nullptr;
-static gameImport::ptr idlefile = nullptr;
-static gameImport::ptr rightfile = nullptr;
-static gameImport::ptr leftfile = nullptr;
-static gameImport::ptr backfile = nullptr;
-static gameImport::ptr fallfile = nullptr;
+static std::array animationPaths {
+	Entry {"walking", DEMO_PREFIX "assets/obj/animations/humanoid/run-forward.glb"},
+	Entry {"idle",    DEMO_PREFIX "assets/obj/animations/humanoid/idle.glb"},
+	Entry {"left",    DEMO_PREFIX "assets/obj/animations/humanoid/run-left.glb"},
+	Entry {"right",   DEMO_PREFIX "assets/obj/animations/humanoid/run-right.glb"},
+	Entry {"back",    DEMO_PREFIX "assets/obj/animations/humanoid/run-backward.glb"},
+	Entry {"falling", DEMO_PREFIX "assets/obj/animations/humanoid/falling.glb"},
+};
+
+static loadedAnims playerAnims;
+
+/*
+// testing stuff, leaving here for now
+animfile  = loadSceneCompiled(DEMO_PREFIX "assets/obj/animations/humanoid/Humanoid@RunForwardUnarmed.glb");
+idlefile  = loadSceneCompiled(DEMO_PREFIX "assets/obj/animations/humanoid/Humanoid@IdleCombat.glb");
+leftfile  = loadSceneCompiled(DEMO_PREFIX "assets/obj/animations/humanoid/Humanoid@RunLeftUnarmed.glb");
+rightfile = loadSceneCompiled(DEMO_PREFIX "assets/obj/animations/humanoid/Humanoid@RunRightUnarmed.glb");
+backfile  = loadSceneCompiled(DEMO_PREFIX "assets/obj/animations/humanoid/Humanoid@RunBackwardsUnarmed.glb");
+fallfile  = loadSceneCompiled(DEMO_PREFIX "assets/obj/animations/humanoid/Humanoid@FallingUnarmed.glb");
+*/
 
 player::player(entityManager *manager, gameMain *game, glm::vec3 position)
 	: entity(manager)
 {
+	attach<wieldedHandler>();
+	attach<movementHandler>();
+	attach<projectileCollision>();
+	attach<syncRigidBodyPosition>();
+	rigidBody *body = attach<rigidBodySphere>(position, 10, 0.75);
 
+	/*
 	//new boxSpawner(manager, this);
 	new wieldedHandler(manager, this);
 	new movementHandler(manager, this);
 	new projectileCollision(manager, this);
 	new syncRigidBodyPosition(manager, this);
 	rigidBody *body = new rigidBodySphere(manager, this, position, 10.0, 0.75);
+	*/
 
 	manager->registerComponent(this, this);
 	manager->registerInterface<updatable>(this, this);
 
 	if (!playerModel) {
-		animfile = loadSceneCompiled("/tmp/running.glb");
-		idlefile = loadSceneCompiled("/tmp/idle.glb");
-		leftfile = loadSceneCompiled("/tmp/runleft.glb");
-		rightfile = loadSceneCompiled("/tmp/runright.glb");
-		backfile = loadSceneCompiled("/tmp/runbackwards.glb");
-		fallfile = loadSceneCompiled("/tmp/falling.glb");
+		playerAnims = loadAnimations(animationPaths);
 
 		// TODO: resource cache
 		//playerModel = loadScene(GR_PREFIX "assets/obj/TestGuy/rigged-lowpolyguy.glb");
@@ -43,14 +58,6 @@ player::player(entityManager *manager, gameMain *game, glm::vec3 position)
 		//playerModel = loadSceneCompiled(DEMO_PREFIX "assets/obj/ld48/player-cursor.glb");
 		//playerModel = loadSceneCompiled("/home/flux/blender/objects/lowpoly-cc0-guy/low-poly-cc0-guy-fixedimport.gltf");
 
-		/*
-		TRS transform = playerModel->getTransformTRS();
-		//transform.rotation = glm::quat(glm::vec3(0, -M_PI/2, 0));
-		//transform.scale = glm::vec3(0.16f);
-		//transform.scale = glm::vec3(2.0f);
-		transform.position = glm::vec3(0, -0.75, 0);
-		playerModel->setTransform(transform);
-		*/
 		playerModel->setPosition(glm::vec3(0, -0.75, 0));
 
 		assert(playerModel != nullptr);
@@ -59,60 +66,29 @@ player::player(entityManager *manager, gameMain *game, glm::vec3 position)
 
 	auto temp = std::static_pointer_cast<gameImport>(duplicate(playerModel));
 	character = std::make_shared<animationController>(temp);
-
-	//TRS transform = node->getTransformTRS();
-	//transform.position = position;
-	//node->setTransform(transform);
 	setNode("model", node, temp);
-	//setNode("light", node, std::make_shared<gameLightPoint>());
-	//setNode("light", node, std::make_shared<gameLightPoint>());
-	//auto lit = std::make_shared<gameLightPoint>();
 
 	auto lit = std::make_shared<gameLightSpot>();
-	lit->setTransform((TRS) {
-		.position = glm::vec3(0, 0.5, 1),
-		//.rotation = glm::quat(glm::vec3(0, -M_PI/2, 0)),
-	});
 
+	lit->setPosition({0, 0.5, 1});
 	lit->intensity = 125;
 	lit->is_static = false;
 	lit->casts_shadows = true;
-	//lit->angle = cos(glm::degrees(35.f));
-	//lit->casts_shadows = false;
-
-	auto plit = std::make_shared<gameLightPoint>();
-	//plit->diffuse = glm::vec4(0.0, 0.17, 0.46, 1.0);
-	plit->diffuse = glm::vec4(1.0);
-	plit->setTransform((TRS) { .position = glm::vec3(0, 1.5, 0), });
-	plit->intensity = 50;
-	plit->radius = 0.75;
-	plit->is_static = false;
-	plit->casts_shadows = false;
-
 	setNode("spotlight", node, lit);
-	//setNode("pointlight", node, plit);
-	//character->setAnimation("idle");
-	auto& foo   = animfile->animations->begin()->second;
-	auto& id    = idlefile->animations->begin()->second;
-	auto& left  = leftfile->animations->begin()->second;
-	auto& right = rightfile->animations->begin()->second;
-	auto& back  = backfile->animations->begin()->second;
-	auto& fall  = fallfile->animations->begin()->second;
 
-	character->bind("walking", foo);
-	character->bind("idle",    id);
-	character->bind("left",    left);
-	character->bind("right",   right);
-	character->bind("back",    back);
-	character->bind("falling", fall);
+	for (const auto& [name, obj] : playerAnims) {
+		auto& anim = obj->animations->begin()->second;
+		character->bind(name, anim);
+	}
 
 	body->registerCollisionQueue(manager->collisions);
-	//auto [name, _] = *playerModel->animations->begin();
+	auto [name, _] = *playerModel->animations->begin();
 
-	//character->setAnimation(name);
+	character->setAnimation(name);
 }
 
-
+#if 0
+// commenting this out for now, might have gotten ahead of myself with serialization
 player::player(entityManager *manager,
                entity *ent,
                nlohmann::json properties)
@@ -158,6 +134,7 @@ player::player(entityManager *manager,
 	auto [name, _] = *playerModel->animations->begin();
 	character->setAnimation(name);
 }
+#endif
 
 nlohmann::json player::serialize(entityManager *manager) {
 	return entity::serialize(manager);

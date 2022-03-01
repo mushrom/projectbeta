@@ -86,9 +86,15 @@ gameImport::ptr animationController::getObject(void) {
 
 void animationController::update(float delta) {
 	if (!currentAnimation) return;
+	// animTime has gotten into a negative or NaN state
+	if (!(animTime == 0 || animTime > 0)) animTime = 0;
+
+	if (currentAnimation->endtime == 0) return;
 
 	//float time = SDL_GetTicks() / 1000.f;
+	//SDL_Log("also got here, animTime: %g, end: %g", animTime, currentAnimation->endtime);
 	animTime = fmod(animTime + delta*animSpeed, currentAnimation->endtime);
+	//SDL_Log("also got here, animTime: %g, end: %g", animTime, currentAnimation->endtime);
 	applyAnimation(objects, currentAnimation, animTime);
 }
 

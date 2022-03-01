@@ -30,3 +30,22 @@ class animationController {
 };
 
 void applyAnimation(gameObject::ptr node, animationMap::ptr anim, float time);
+
+using Entry = std::pair<std::string, std::string>;
+using loadedAnims = std::map<std::string, gameImport::ptr>;
+
+template <size_t N>
+loadedAnims loadAnimations(std::array<Entry, N> paths) {
+	loadedAnims ret;
+
+	for (const auto& [name, path] : paths) {
+		ret[name] = loadSceneCompiled(path);
+
+		if (!ret[name]) {
+			// TODO: logger, error handling
+			SDL_Log("Couldn't load %s!", path.c_str());
+		}
+	}
+
+	return ret;
+}

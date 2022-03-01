@@ -18,13 +18,16 @@ enemy::~enemy() {};
 noodler::~noodler() {};
 bat::~bat() {};
 
-static gameImport::ptr playerModel = nullptr;
-static gameImport::ptr animfile = nullptr;
-static gameImport::ptr idlefile = nullptr;
-static gameImport::ptr rightfile = nullptr;
-static gameImport::ptr leftfile = nullptr;
-static gameImport::ptr backfile = nullptr;
-static gameImport::ptr fallfile = nullptr;
+static std::array animationPaths {
+	Entry {"idle",    DEMO_PREFIX "assets/obj/animations/advdroid/idle.glb"},
+	Entry {"walking", DEMO_PREFIX "assets/obj/animations/advdroid/run-forward.glb"},
+	Entry {"back",    DEMO_PREFIX "assets/obj/animations/advdroid/run-backward.glb"},
+	Entry {"left",    DEMO_PREFIX "assets/obj/animations/advdroid/run-left.glb"},
+	Entry {"right",   DEMO_PREFIX "assets/obj/animations/advdroid/run-right.glb"},
+	Entry {"falling", DEMO_PREFIX "assets/obj/animations/advdroid/falling.glb"},
+};
+
+static loadedAnims playerAnims;
 
 enemy::enemy(entityManager *manager,
 		gameMain *game,
@@ -35,41 +38,24 @@ enemy::enemy(entityManager *manager,
 		float mass)
 	: entity(manager)
 {
-	gameObject::ptr model = nullptr;
+	node->setPosition(position);
 
-	TRS transform = node->getTransformTRS();
-	transform.position = position;
-	node->setTransform(transform);
+	attach<health>();
+	attach<worldHealthbar>();
+	attach<projectileCollision>();
+	attach<syncRigidBodyXZVelocity>();
+	rigidBody *body = attach<rigidBodyCapsule>(position, mass, radius, height);
 
-	new health(manager, this);
-	new worldHealthbar(manager, this);
-	new projectileCollision(manager, this);
-	new syncRigidBodyXZVelocity(manager, this);
-	auto body = new rigidBodyCapsule(manager, this, transform.position, mass, radius, height);
-
-	//manager->registerComponent(this, "enemy", this);
-	//manager->registerComponent(this, "updatable", this);
 	manager->registerComponent(this, this);
 	manager->registerInterface<updatable>(this, this);
 
+	gameObject::ptr model = nullptr;
 	auto it = enemyModels.find(modelPath);
 
 	// TODO:
 	if (it == enemyModels.end()) {
-		//auto [data, _] = loadSceneAsyncCompiled(manager->engine, modelPath);
+		playerAnims = loadAnimations(animationPaths);
 		auto data = loadSceneCompiled(modelPath);
-
-		/*
-		auto data = loadSceneCompiled(DEMO_PREFIX "assets/obj/noodler.glb");
-		enemyModel = data;
-		sfx = openAudio(DEMO_PREFIX "assets/sfx/mnstr7.ogg");
-		*/
-
-		animfile  = loadSceneCompiled("/tmp/advdroid/run.glb");
-		idlefile  = loadSceneCompiled("/tmp/advdroid/idle.glb");
-		leftfile  = loadSceneCompiled("/tmp/advdroid/left.glb");
-		rightfile = loadSceneCompiled("/tmp/advdroid/right.glb");
-		backfile  = loadSceneCompiled("/tmp/advdroid/back.glb");
 
 		model = data;
 		enemyModels.insert({modelPath, data});
@@ -82,33 +68,23 @@ enemy::enemy(entityManager *manager,
 		sfx = openAudio(DEMO_PREFIX "assets/sfx/mnstr7.ogg");
 	}
 
-	auto& foo   = animfile->animations->begin()->second;
-	auto& id    = idlefile->animations->begin()->second;
-	auto& left  = leftfile->animations->begin()->second;
-	auto& right = rightfile->animations->begin()->second;
-	auto& back  = backfile->animations->begin()->second;
-	//auto& fall  = fallfile->animations->begin()->second;
-
 	gameImport::ptr temp = std::static_pointer_cast<gameImport>(duplicate(model));
 	character = std::make_shared<animationController>(temp);
-	character->bind("walking", foo);
-	character->bind("idle",    id);
-	character->bind("left",    left);
-	character->bind("right",   right);
-	character->bind("back",    back);
-	//character->bind("falling", fall);
 
-	//setNode("model", node, duplicate(model));
-	//setNode("model", node, temp);
+	for (auto& [name, obj] : playerAnims) {
+		auto& anim = obj->animations->begin()->second;
+		character->bind(name, anim);
+	}
+
 	setNode("model", node, temp);
 	body->registerCollisionQueue(manager->collisions);
 	body->phys->setAngularFactor(0.0);
 
 	xxxid = counter++;
-
-	//lastSound = 100*node->id;
 }
 
+#if 0
+// commenting this out for now, TODO: redo serialization stuff
 // TODO: sync this constructor with the above
 enemy::enemy(entityManager *manager, entity *ent, nlohmann::json properties)
 	: entity(manager, properties)
@@ -168,11 +144,11 @@ enemy::enemy(entityManager *manager, entity *ent, nlohmann::json properties)
 	body->registerCollisionQueue(manager->collisions);
 	body->phys->setAngularFactor(0.0);
 }
+#endif
 
 #include <logic/projalphaView.hpp>
 void enemy::update(entityManager *manager, float delta) {
 	glm::vec3 playerPos;
-	glm::vec3 selfPos = node->getTransformTRS().position;
 
 	entity *playerEnt =
 		findNearest<generator>(manager, node->getTransformTRS().position);
