@@ -1,4 +1,4 @@
-#include <grend/gameEditor.hpp>
+#include <grend/loadScene.hpp>
 #include <grend/geometryGeneration.hpp>
 #include <grend/utility.hpp>
 

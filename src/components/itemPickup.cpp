@@ -2,7 +2,7 @@
 #include <components/inventory.hpp>
 #include <utility/serializer.hpp>
 #include <logic/gameController.hpp>
-#include <grend/gameEditor.hpp>
+#include <grend/loadScene.hpp>
 
 #include <logic/UI.hpp>
 

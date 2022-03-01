@@ -1,4 +1,4 @@
-#include <grend/gameEditor.hpp>
+#include <grend/loadScene.hpp>
 
 #include <components/health.hpp>
 #include <components/healthbar.hpp>

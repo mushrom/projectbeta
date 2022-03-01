@@ -2,7 +2,7 @@
 
 #include <grend/gameObject.hpp>
 #include <grend/animation.hpp>
-#include <grend/gameEditor.hpp>
+#include <grend/loadScene.hpp>
 #include <grend/ecs/ecs.hpp>
 #include <grend/ecs/collision.hpp>
 #include <grend/ecs/rigidBody.hpp>

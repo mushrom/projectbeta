@@ -1,4 +1,4 @@
-#include <grend/gameEditor.hpp>
+#include <grend/loadScene.hpp>
 #include <grend/geometryGeneration.hpp>
 #include "wfcGenerator.hpp"
 #include <wfc-test/wfc.hpp>

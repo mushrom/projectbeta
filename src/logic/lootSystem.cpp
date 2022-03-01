@@ -1,5 +1,5 @@
 #include <grend/geometryGeneration.hpp>
-#include <grend/gameEditor.hpp>
+#include <grend/loadScene.hpp>
 #include <stdlib.h>
 
 #include "lootSystem.hpp"

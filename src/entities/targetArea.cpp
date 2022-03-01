@@ -1,7 +1,7 @@
 #include "targetArea.hpp"
 #include <components/health.hpp>
 
-#include <grend/gameEditor.hpp>
+#include <grend/loadScene.hpp>
 
 using namespace grendx;
 using namespace grendx::ecs;

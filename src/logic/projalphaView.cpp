@@ -4,6 +4,7 @@
 //#include <grend/playerView.hpp>
 #include <grend/geometryGeneration.hpp>
 #include <grend/gameEditor.hpp>
+#include <grend/loadScene.hpp>
 #include <grend/controllers.hpp>
 
 #include <grend/ecs/ecs.hpp>

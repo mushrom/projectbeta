@@ -1,7 +1,7 @@
 #include "flag.hpp"
 #include <components/team.hpp>
 
-#include <grend/gameEditor.hpp>
+#include <grend/loadScene.hpp>
 
 flag::~flag() {};
 flagPickup::~flagPickup() {};

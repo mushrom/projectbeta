@@ -1,5 +1,5 @@
 #include <entities/amulet.hpp>
-#include <grend/gameEditor.hpp>
+#include <grend/loadScene.hpp>
 
 amuletPickup::~amuletPickup() {};
 

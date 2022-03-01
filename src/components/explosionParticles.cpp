@@ -1,5 +1,5 @@
 #include <components/explosionParticles.hpp>
-#include <grend/gameEditor.hpp>
+#include <grend/loadScene.hpp>
 
 explosionParticles::~explosionParticles() {};
 
