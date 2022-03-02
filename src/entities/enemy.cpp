@@ -3,6 +3,8 @@
 
 #include <components/health.hpp>
 #include <components/healthbar.hpp>
+#include <components/sceneTree.hpp>
+
 #include <entities/projectile.hpp>
 #include <entities/player.hpp>
 #include <entities/generator.hpp>
@@ -55,10 +57,10 @@ enemy::enemy(entityManager *manager,
 	// TODO:
 	if (it == enemyModels.end()) {
 		playerAnims = loadAnimations(animationPaths);
-		auto data = loadSceneCompiled(modelPath);
-
-		model = data;
-		enemyModels.insert({modelPath, data});
+		if (auto data = loadSceneCompiled(modelPath)) {
+			model = *data;
+			enemyModels.insert({modelPath, model});
+		} else printError(data);
 
 	} else {
 		model = it->second;

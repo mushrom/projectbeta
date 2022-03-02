@@ -9,6 +9,7 @@
 
 #include <components/health.hpp>
 #include <components/itemPickup.hpp>
+#include <components/sceneTree.hpp>
 
 #include <components/actions/Wieldable.hpp>
 #include <components/actions/Throwable.hpp>
@@ -31,11 +32,15 @@ class flareItem : public pickup {
 		flareItem(entityManager *manager, entity *ent, nlohmann::json properties)
 			: pickup(manager, ent, properties)
 		{
+			manager->registerComponent(this, this);
+
 			new Throwable(manager, ent);
 			//new Wieldable(manager, ent, "Throwable");
 			new Wieldable(manager, ent, getTypeName<Throwable>());
-			manager->registerComponent(this, this);
 
+			attach<sceneTree>(DEMO_PREFIX "assets/obj/flare.glb");
+
+			/*
 			static gameObject::ptr model = nullptr;
 			// XXX: really need resource manager
 			if (model == nullptr) {
@@ -49,6 +54,7 @@ class flareItem : public pickup {
 			}
 
 			setNode("model", node, model);
+			*/
 
 			gameLightPoint::ptr lit = std::make_shared<gameLightPoint>();
 

@@ -11,6 +11,7 @@
 #include <components/inventory.hpp>
 #include <components/itemPickup.hpp>
 #include <components/boxSpawner.hpp>
+#include <components/sceneTree.hpp>
 
 class chasePlayer : public component, public updatable {
 	public:
@@ -28,6 +29,8 @@ class ammoLoot : public autopickup {
 
 			new chasePlayer(manager, this);
 
+			attach<sceneTree>(DEMO_PREFIX "assets/obj/emissive-cube.glb");
+			/*
 			// TODO: resource manager
 			static gameObject::ptr model = nullptr;
 
@@ -38,7 +41,11 @@ class ammoLoot : public autopickup {
 				transform.scale = glm::vec3(0.25);
 				model->setTransform(transform);
 			}
+			setNode("model", node, model);
+			*/
 
+			node->setPosition(position);
+			node->setScale(glm::vec3 {0.25});
 
 			gameLightPoint::ptr lit = std::make_shared<gameLightPoint>();
 			lit->diffuse = glm::vec4(0.2, 0.2, 1.0, 1.0);
@@ -46,7 +53,6 @@ class ammoLoot : public autopickup {
 			lit->radius = 0.2;
 
 			setNode("light", node, lit);
-			setNode("model", node, model);
 		}
 
 		virtual void onEvent(entityManager *manager, entity *ent, entity *other) {
@@ -75,7 +81,9 @@ class healthLoot : public autopickup {
 			manager->registerComponent(this, this);
 
 			new chasePlayer(manager, this);
+			attach<sceneTree>(DEMO_PREFIX "assets/obj/emissive-cube.glb");
 
+			/*
 			// TODO: resource manager
 			static gameObject::ptr model = nullptr;
 
@@ -86,6 +94,11 @@ class healthLoot : public autopickup {
 				transform.scale = glm::vec3(0.25);
 				model->setTransform(transform);
 			}
+			setNode("model", node, model);
+			*/
+
+			node->setPosition(position);
+			node->setScale(glm::vec3 {0.25});
 
 			gameLightPoint::ptr lit = std::make_shared<gameLightPoint>();
 			lit->diffuse = glm::vec4(1.0, 0.2, 0.2, 1.0);
@@ -93,7 +106,6 @@ class healthLoot : public autopickup {
 			lit->radius = 0.2;
 
 			setNode("light", node, lit);
-			setNode("model", node, model);
 		}
 
 		virtual void onEvent(entityManager *manager, entity *ent, entity *other) {

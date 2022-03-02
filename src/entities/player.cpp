@@ -54,14 +54,18 @@ player::player(entityManager *manager, gameMain *game, glm::vec3 position)
 		//playerModel = loadScene(GR_PREFIX "assets/obj/TestGuy/rigged-lowpolyguy.glb");
 		SDL_Log("Loading player model...");
 		//playerModel = loadSceneCompiled(DEMO_PREFIX "assets/obj/buff-dude-testanim.glb");
-		playerModel = loadSceneCompiled(DEMO_PREFIX "assets/obj/trooper.glb");
+		if (auto res = loadSceneCompiled(DEMO_PREFIX "assets/obj/trooper.glb")) {
+			playerModel = *res;
+
+		} else {
+			printError(res);
+			return;
+		}
+
 		//playerModel = loadSceneCompiled(DEMO_PREFIX "assets/obj/ld48/player-cursor.glb");
 		//playerModel = loadSceneCompiled("/home/flux/blender/objects/lowpoly-cc0-guy/low-poly-cc0-guy-fixedimport.gltf");
 
 		playerModel->setPosition(glm::vec3(0, -0.75, 0));
-
-		assert(playerModel != nullptr);
-		SDL_Log("got player model");
 	}
 
 	auto temp = std::static_pointer_cast<gameImport>(duplicate(playerModel));

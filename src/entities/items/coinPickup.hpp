@@ -9,6 +9,7 @@
 
 #include <components/health.hpp>
 #include <components/itemPickup.hpp>
+#include <components/sceneTree.hpp>
 
 #include <components/actions/Wieldable.hpp>
 #include <components/actions/Throwable.hpp>
@@ -36,6 +37,7 @@ class coinPickup : public pickup {
 			new Wieldable(manager, ent, getTypeName<Throwable>());
 			manager->registerComponent(this, this);
 
+			/*
 			static gameObject::ptr model = nullptr;
 			// XXX: really need resource manager
 			if (model == nullptr) {
@@ -49,6 +51,9 @@ class coinPickup : public pickup {
 			}
 
 			setNode("model", node, model);
+			*/
+
+			attach<sceneTree>(DEMO_PREFIX "assets/obj/coins.glb");
 
 			gameLightPoint::ptr lit = std::make_shared<gameLightPoint>();
 

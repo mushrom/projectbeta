@@ -9,6 +9,7 @@
 
 #include <components/health.hpp>
 #include <components/itemPickup.hpp>
+#include <components/sceneTree.hpp>
 
 #include <components/actions/Wieldable.hpp>
 #include <components/actions/Throwable.hpp>
@@ -32,11 +33,15 @@ class chestItem : public pickup {
 			: pickup(manager, ent, properties)
 		{
 			manager->registerComponent(this, this);
+			attach<sceneTree>(DEMO_PREFIX "assets/obj/treasure-chest.glb");
 
+			/*
 			static gameObject::ptr model = nullptr;
 			// XXX: really need resource manager
 			if (model == nullptr) {
-				model = loadSceneCompiled(DEMO_PREFIX "assets/obj/treasure-chest.glb");
+				if (auto temp = loadSceneCompiled(DEMO_PREFIX "assets/obj/treasure-chest.glb")) {
+					model = *temp;
+				} else printError(temp);
 			}
 
 			{
@@ -44,8 +49,9 @@ class chestItem : public pickup {
 				//transform.scale = glm::vec3(2.0);
 				//model->setTransform(transform);
 			}
+			*/
 
-			setNode("model", node, duplicate(model));
+			//setNode("model", node, duplicate(model));
 
 			gameLightPoint::ptr lit = std::make_shared<gameLightPoint>();
 

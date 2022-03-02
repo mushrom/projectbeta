@@ -9,6 +9,7 @@
 
 #include <components/health.hpp>
 #include <components/itemPickup.hpp>
+#include <components/sceneTree.hpp>
 
 #include <components/explosionParticles.hpp>
 
@@ -40,6 +41,7 @@ class explodyBarrel : public pickup {
 				.extent = {0.275, 0.45, 0.275},
 			};
 
+			attach<sceneTree>(DEMO_PREFIX "assets/obj/Barrel_01/Barrel_01_2k.gltf");
 			new health(manager, this);
 			new projectileCollision(manager, this);
 			new syncRigidBodyTransform(manager, this);
@@ -50,6 +52,7 @@ class explodyBarrel : public pickup {
 			manager->registerComponent(this, this);
 			body->registerCollisionQueue(manager->collisions);
 
+			/*
 			static gameObject::ptr model = nullptr;
 			// XXX: really need resource manager
 			if (model == nullptr) {
@@ -67,6 +70,7 @@ class explodyBarrel : public pickup {
 			}
 
 			setNode("model", node, model);
+			*/
 
 			gameLightPoint::ptr lit = std::make_shared<gameLightPoint>();
 

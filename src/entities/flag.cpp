@@ -1,5 +1,6 @@
 #include "flag.hpp"
 #include <components/team.hpp>
+#include <components/sceneTree.hpp>
 
 #include <grend/loadScene.hpp>
 
@@ -15,6 +16,7 @@ flag::flag(entityManager *manager, gameMain *game,
 
 	manager->registerComponent(this, this);
 
+	/*
 	// TODO: resource manager
 	static gameObject::ptr flagModel = nullptr;
 	if (!flagModel) {
@@ -24,9 +26,13 @@ flag::flag(entityManager *manager, gameMain *game,
 		transform.scale = glm::vec3(2.0);
 		flagModel->setTransform(transform);
 	}
-
-	node->setTransform((TRS) { .position = position, });
 	setNode("model", node, flagModel);
+	*/
+
+	attach<sceneTree>(DEMO_PREFIX "assets/obj/flag.glb");
+
+	//node->setTransform((TRS) { .position = position, });
+	node->setPosition(position);
 }
 
 void flag::update(entityManager *manager, float delta) { };

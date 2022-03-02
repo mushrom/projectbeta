@@ -292,15 +292,18 @@ int main(int argc, char *argv[]) { try {
 	addLevelInitializers(game, view);
 
 	SDL_Log("Got to game->run()! mapfile: %s\n", mapfile);
-	auto mapdata = loadMapCompiled(game, mapfile);
-	game->state->rootnode = mapdata;
-	setNode("entities", game->state->rootnode, game->entities->root);
 
 	std::vector<physicsObject::ptr> mapPhysics;
-	game->phys->addStaticModels(nullptr,
-								mapdata,
-								TRS(),
-								mapPhysics);
+	if (auto res = loadMapCompiled(game, mapfile)) {
+		auto mapdata = *res;
+		game->state->rootnode = mapdata;
+		setNode("entities", game->state->rootnode, game->entities->root);
+
+		game->phys->addStaticModels(nullptr, mapdata, TRS(), mapPhysics);
+	} else {
+		printError(res);
+		return 2;
+	}
 
 	if (const char *target = getenv("GREND_TEST_TARGET")) {
 		return runTests(game, view, target);

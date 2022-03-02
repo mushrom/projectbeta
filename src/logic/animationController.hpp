@@ -2,6 +2,7 @@
 
 #include <grend/gameObject.hpp>
 #include <grend/animation.hpp>
+#include <grend/loadScene.hpp>
 
 using namespace grendx;
 
@@ -39,12 +40,9 @@ loadedAnims loadAnimations(std::array<Entry, N> paths) {
 	loadedAnims ret;
 
 	for (const auto& [name, path] : paths) {
-		ret[name] = loadSceneCompiled(path);
-
-		if (!ret[name]) {
-			// TODO: logger, error handling
-			SDL_Log("Couldn't load %s!", path.c_str());
-		}
+		if (auto res = loadSceneCompiled(path)) {
+			ret[name] = *res;
+		} else printError(res);
 	}
 
 	return ret;

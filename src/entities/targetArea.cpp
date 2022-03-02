@@ -1,5 +1,6 @@
 #include "targetArea.hpp"
 #include <components/health.hpp>
+#include <components/sceneTree.hpp>
 
 #include <grend/loadScene.hpp>
 
@@ -18,7 +19,9 @@ targetArea::targetArea(entityManager *manager,
 	manager->registerComponent(ent, this);
 
 	new areaSphere(manager, this, 5.f);
+	attach<sceneTree>(DEMO_PREFIX "assets/obj/hill-sphere.glb");
 
+	/*
 	// TODO: resource manager
 	static gameObject::ptr areaModel = nullptr;
 	if (!areaModel) {
@@ -30,6 +33,7 @@ targetArea::targetArea(entityManager *manager,
 	}
 
 	setNode("model", node, areaModel);
+	*/
 }
 
 json targetArea::serialize(entityManager *manager) {

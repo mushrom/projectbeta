@@ -263,36 +263,39 @@ void projalphaView::load(gameMain *game, std::string map) {
 		//game->state->rootnode = loadMapCompiled(game, map);
 		game->jobs->addAsync([=, this] () {
 			//auto [node, models] = loadMapData(game, map);
-			auto mapdata = loadMapData(game, map);
-			auto node = mapdata.first;
-			auto models = mapdata.second;
+			if (auto res = loadMapData(game, map)) {
+				auto mapdata = *res;
+				auto node = mapdata.first;
+				auto models = mapdata.second;
 
-			game->jobs->addDeferred([=, this] () {
-				// TODO: some sort of world entity
-				//mapPhysics.clear();
-				//mapQueue.clear();
+				game->jobs->addDeferred([=, this] () {
+					// TODO: some sort of world entity
+					//mapPhysics.clear();
+					//mapQueue.clear();
 
-/*
-				game->phys->addStaticModels(nullptr,
-				                            node,
-				                            staticPosition,
-				                            mapPhysics);
+	/*
+					game->phys->addStaticModels(nullptr,
+												node,
+												staticPosition,
+												mapPhysics);
 
-				compileModels(models);
-				*/
+					compileModels(models);
+					*/
 
-				level->reset();
-				//game->state->rootnode = node;
-				setNode("asyncLoaded", node, std::make_shared<gameObject>());
-				setNode("entities", node, game->entities->root);
-				setNode("maproot", game->state->rootnode, node);
-				//setNode("wfc", node, wfcgen->getNode());
-				//mapQueue.add(wfcgen->getNode());
+					level->reset();
+					//game->state->rootnode = node;
+					setNode("asyncLoaded", node, std::make_shared<gameObject>());
+					setNode("entities", node, game->entities->root);
+					setNode("maproot", game->state->rootnode, node);
+					//setNode("wfc", node, wfcgen->getNode());
+					//mapQueue.add(wfcgen->getNode());
+
+					return true;
+				});
 
 				return true;
-			});
 
-			return true;
+			} else printError(res);
 		});
 	}
 }
