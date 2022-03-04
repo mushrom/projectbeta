@@ -139,103 +139,33 @@ void projalphaView::render(gameMain *game) {
 	                      UBO_SPOT_LIGHT_TILES);
 #endif
 
-	if (input.mode == modes::MainMenu) {
-		renderWorld(game, cam, mapQueue, flags);
-
-		// TODO: need to set post size on resize event..
-		//post->setSize(winsize_x, winsize_y);
-		post->draw(game->rend->framebuffer);
-
-		drawMainMenu(game, winsize_x, winsize_y);
-
-	} else if (input.mode == modes::Settings) {
-		renderWorld(game, cam, mapQueue, flags);
-
-		// TODO: need to set post size on resize event..
-		//post->setSize(winsize_x, winsize_y);
-		post->draw(game->rend->framebuffer);
-
-		drawSettings(game, winsize_x, winsize_y);
-
-	} else if (input.mode == modes::NewGame) {
-		renderWorld(game, cam, mapQueue, flags);
-
-		// TODO: need to set post size on resize event..
-		//post->setSize(winsize_x, winsize_y);
-		post->draw(game->rend->framebuffer);
-
-		drawNewGameMenu(game, winsize_x, winsize_y);
-
-	} else if (input.mode == modes::Intro) {
-		renderWorld(game, cam, mapQueue, flags);
-
-		// TODO: need to set post size on resize event..
-		//post->setSize(winsize_x, winsize_y);
-		post->draw(game->rend->framebuffer);
-
-		drawIntroWindow(game, winsize_x, winsize_y);
-
-	} else if (input.mode == modes::Pause) {
-		renderWorld(game, cam, mapQueue, flags);
-
-		// TODO: need to set post size on resize event..
-		//post->setSize(winsize_x, winsize_y);
-		post->draw(game->rend->framebuffer);
-
-		// TODO: function to do this
-		drawPauseMenu(game, winsize_x, winsize_y);
-
-	} else if (input.mode == modes::Won) {
-		renderWorld(game, cam, mapQueue, flags);
-
-		// TODO: need to set post size on resize event..
-		//post->setSize(winsize_x, winsize_y);
-		post->draw(game->rend->framebuffer);
-
-		// TODO: function to do this
-		drawWinScreen(game, winsize_x, winsize_y);
-
-	} else if (input.mode == modes::Loading) {
+	if (input.mode == modes::Loading) {
 		// render loading screen
+		// TODO:
 		Framebuffer().bind();
 		setDefaultGlFlags();
 		disable(GL_DEPTH_TEST);
 		disable(GL_SCISSOR_TEST);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
-	} else if (input.mode == modes::Inventory) {
-		renderWorld(game, cam, mapQueue, flags);
-
-		// TODO: need to set post size on resize event..
-		//post->setSize(winsize_x, winsize_y);
-		post->draw(game->rend->framebuffer);
-		//input.setMode(modes::Move);
-
-		// TODO: function to do this
-		//drawMainMenu(game, winsize_x, winsize_y);
-		renderHealthbars(game->entities.get(), nk_ctx, cam);
-		drawInventory(game, winsize_x, winsize_y);
-
 	} else {
-		// main game mode
-		//if (floor) renderWorld(game, cam, floor->mapQueue, flags);
 		renderWorld(game, cam, mapQueue, flags);
-
-		glActiveTexture(TEX_GL_SHADOWS);
-		game->rend->atlases.shadows->depth_tex->bind();
 		post->draw(game->rend->framebuffer);
-
-		Framebuffer().bind();
-		setDefaultGlFlags();
-
-		disable(GL_DEPTH_TEST);
-		disable(GL_SCISSOR_TEST);
-		glClear(GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
-
 		renderHealthbars(game->entities.get(), nk_ctx, cam);
 
 		if (debugTiles) {
 			drawTileDebug(game);
+		}
+
+		switch (input.mode) {
+			case modes::MainMenu:  drawMainMenu(game, winsize_x, winsize_y); break;
+			case modes::Settings:  drawSettings(game, winsize_x, winsize_y); break;
+			case modes::NewGame:   drawNewGameMenu(game, winsize_x, winsize_y); break;
+			case modes::Intro:     drawIntroWindow(game, winsize_x, winsize_y); break;
+			case modes::Pause:     drawPauseMenu(game, winsize_x, winsize_y); break;
+			case modes::Won:       drawWinScreen(game, winsize_x, winsize_y); break;
+			case modes::Inventory: drawInventory(game, winsize_x, winsize_y); break;
+			default: break;
 		}
 
 		drawNavPrompts(game, winsize_x, winsize_y);
