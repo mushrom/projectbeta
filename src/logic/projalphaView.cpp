@@ -28,6 +28,7 @@ using namespace grendx::ecs;
 #include <logic/levelController.hpp>
 
 #include <entities/player.hpp>
+#include <components/shader.hpp>
 
 #include <nuklear/nuklear.h>
 
@@ -114,6 +115,28 @@ void projalphaView::logic(gameMain *game, float delta) {
 	}
 }
 
+// TODO: this should instantiate a render queue for each unique shader,
+//       collect light nodes, build light/shadow/reflection maps etc...
+//       need to break up the renderWorld() function into a bunch of functions
+//       to do this, flush() should be moved out of render queue and instead
+//       be a seperate function that also takes light list, etc parameters
+//
+//       etc.
+//renderQueue drawEntities(gameMain *game) {
+void drawEntities(gameMain *game, renderQueue& ret) {
+	entityManager *entities = game->entities.get();
+	//renderQueue ret;
+
+	auto drawable = searchEntities(entities, {getTypeName<abstractShader>()});
+
+	for (auto& shader : drawable) {
+		entity *ent = entities->getEntity(shader);
+		ret.add(ent->node);
+	}
+
+	//return ret;
+}
+
 void projalphaView::render(gameMain *game) {
 	int winsize_x, winsize_y;
 	SDL_GetWindowSize(game->ctx.window, &winsize_x, &winsize_y);
@@ -149,7 +172,12 @@ void projalphaView::render(gameMain *game) {
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
 	} else {
-		renderWorld(game, cam, mapQueue, flags);
+		renderQueue foo = mapQueue;
+		drawEntities(game, foo);
+		//renderQueue asdf = drawEntities(game);
+		//foo.add(asdf);
+
+		renderWorld(game, cam, foo, flags);
 		post->draw(game->rend->framebuffer);
 		renderHealthbars(game->entities.get(), nk_ctx, cam);
 

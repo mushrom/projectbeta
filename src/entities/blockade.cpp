@@ -3,6 +3,7 @@
 
 #include <components/health.hpp>
 #include <components/healthbar.hpp>
+#include <components/shader.hpp>
 #include <entities/enemyCollision.hpp>
 #include <entities/projectile.hpp>
 #include <entities/player.hpp>
@@ -31,6 +32,7 @@ blockade::blockade(entityManager *manager, const glm::vec3& position)
 	attach<worldHealthbar>();
 	attach<syncRigidBodyTransform>();
 	attach<enemyCollision>();
+	attach<PBRShader>();
 
 	auto box = (AABB){
 		.min = glm::vec3(-1.5, 0, -0.5),

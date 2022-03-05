@@ -10,6 +10,7 @@
 #include <components/health.hpp>
 #include <components/itemPickup.hpp>
 #include <components/sceneTree.hpp>
+#include <components/shader.hpp>
 
 #include <components/actions/Wieldable.hpp>
 #include <components/actions/Throwable.hpp>
@@ -34,11 +35,14 @@ class flareItem : public pickup {
 		{
 			manager->registerComponent(this, this);
 
-			new Throwable(manager, ent);
+			//new Throwable(manager, ent);
 			//new Wieldable(manager, ent, "Throwable");
-			new Wieldable(manager, ent, getTypeName<Throwable>());
+			//new Wieldable(manager, ent, getTypeName<Throwable>());
 
+			attach<Throwable>();
+			attach<Wieldable>(getTypeName<Throwable>());
 			attach<sceneTree>(DEMO_PREFIX "assets/obj/flare.glb");
+			attach<PBRShader>();
 
 			/*
 			static gameObject::ptr model = nullptr;

@@ -12,6 +12,7 @@
 #include <components/itemPickup.hpp>
 #include <components/boxSpawner.hpp>
 #include <components/sceneTree.hpp>
+#include <components/shader.hpp>
 
 class chasePlayer : public component, public updatable {
 	public:
@@ -27,9 +28,9 @@ class ammoLoot : public autopickup {
 		{
 			manager->registerComponent(this, this);
 
-			new chasePlayer(manager, this);
-
+			attach<chasePlayer>();
 			attach<sceneTree>(DEMO_PREFIX "assets/obj/emissive-cube.glb");
+			attach<PBRShader>();
 			/*
 			// TODO: resource manager
 			static gameObject::ptr model = nullptr;
@@ -80,8 +81,9 @@ class healthLoot : public autopickup {
 		{
 			manager->registerComponent(this, this);
 
-			new chasePlayer(manager, this);
+			attach<chasePlayer>();
 			attach<sceneTree>(DEMO_PREFIX "assets/obj/emissive-cube.glb");
+			attach<PBRShader>();
 
 			/*
 			// TODO: resource manager

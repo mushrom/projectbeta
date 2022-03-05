@@ -4,6 +4,7 @@
 // TODO: move stuff around
 #include <entities/items/items.hpp>
 #include <components/timedLifetime.hpp>
+#include <components/shader.hpp>
 
 static channelBuffers_ptr sfx = nullptr;
 
@@ -53,10 +54,14 @@ boxBullet::boxBullet(entityManager *manager, gameMain *game, glm::vec3 position)
 
 	manager->registerComponent(this, this);
 
-	new Fireable(manager, this);
+	attach<Fireable>();
+	attach<Wieldable>(getTypeName<Fireable>());
+	attach<PBRShader>();
+
+	//new Fireable(manager, this);
 	//new Throwable(manager, this);
 	//new Wieldable(manager, this, "Fireable");
-	new Wieldable(manager, this, getTypeName<Fireable>());
+	//new Wieldable(manager, this, getTypeName<Fireable>());
 
 	if (!model) {
 		// TODO: assets

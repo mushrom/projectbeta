@@ -297,7 +297,7 @@ int main(int argc, char *argv[]) { try {
 	if (auto res = loadMapCompiled(game, mapfile)) {
 		auto mapdata = *res;
 		game->state->rootnode = mapdata;
-		setNode("entities", game->state->rootnode, game->entities->root);
+		//setNode("entities", game->state->rootnode, game->entities->root);
 
 		game->phys->addStaticModels(nullptr, mapdata, TRS(), mapPhysics);
 	} else {

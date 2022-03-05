@@ -1,6 +1,7 @@
 #include <grend/loadScene.hpp>
 #include "player.hpp"
 #include <components/playerInfo.hpp>
+#include <components/shader.hpp>
 
 player::~player() {};
 
@@ -33,6 +34,7 @@ player::player(entityManager *manager, gameMain *game, glm::vec3 position)
 	attach<movementHandler>();
 	attach<projectileCollision>();
 	attach<syncRigidBodyPosition>();
+	attach<PBRShader>();
 	rigidBody *body = attach<rigidBodySphere>(position, 10, 0.75);
 
 	/*

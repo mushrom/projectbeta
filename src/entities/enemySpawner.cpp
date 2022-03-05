@@ -3,6 +3,7 @@
 #include <components/health.hpp>
 #include <components/healthbar.hpp>
 #include <components/team.hpp>
+#include <components/shader.hpp>
 
 #include <entities/projectile.hpp>
 #include <entities/enemy.hpp>
@@ -18,6 +19,7 @@ enemySpawner::enemySpawner(entityManager *manager, glm::vec3 position)
 	new health(manager, this, 1.f, 1000.f);
 	new worldHealthbar(manager, this);
 	new projectileCollision(manager, this);
+	attach<PBRShader>();
 	auto body = new rigidBodySphere(manager, this, position, 0.0, 1.0);
 
 	manager->registerComponent(this, this);

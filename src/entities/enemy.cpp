@@ -4,6 +4,7 @@
 #include <components/health.hpp>
 #include <components/healthbar.hpp>
 #include <components/sceneTree.hpp>
+#include <components/shader.hpp>
 
 #include <entities/projectile.hpp>
 #include <entities/player.hpp>
@@ -46,6 +47,7 @@ enemy::enemy(entityManager *manager,
 	attach<worldHealthbar>();
 	attach<projectileCollision>();
 	attach<syncRigidBodyXZVelocity>();
+	attach<PBRShader>();
 	rigidBody *body = attach<rigidBodyCapsule>(position, mass, radius, height);
 
 	manager->registerComponent(this, this);
