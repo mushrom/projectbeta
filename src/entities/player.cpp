@@ -77,6 +77,7 @@ player::player(entityManager *manager, gameMain *game, glm::vec3 position)
 	auto lit = std::make_shared<gameLightSpot>();
 
 	lit->setPosition({0, 0.5, 1});
+	lit->setRotation(glm::quat(glm::vec3(0, -M_PI/2, 0)));
 	lit->intensity = 125;
 	lit->is_static = false;
 	lit->casts_shadows = true;
