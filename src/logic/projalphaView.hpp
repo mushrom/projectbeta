@@ -117,7 +117,7 @@ class projalphaView : public gameView {
 		std::vector<floorStates::uniqueptr> floors;
 		//std::vector<physicsObject::ptr> mapPhysics;
 		//std::vector<entity*> levelEntities;
-		renderQueue mapQueue = renderQueue(cam);
+		renderQueue mapQueue;
 
 		void incrementFloor(gameMain *game, int amount);
 		floorStates *getFloor(gameMain *game, int n);
