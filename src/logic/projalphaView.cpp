@@ -115,6 +115,28 @@ void projalphaView::logic(gameMain *game, float delta) {
 	}
 }
 
+struct flagHash {
+	std::size_t operator()(const renderFlags& r) const noexcept {
+		std::size_t ret = 737;
+
+		unsigned k = (r.cull_faces << 6)
+		           | (r.sort       << 5)
+		           | (r.stencil    << 4)
+		           | (r.depthTest  << 3)
+		           | (r.depthMask  << 2)
+		           | (r.syncshader << 1)
+		           | (r.shadowmap  << 0);
+
+		ret = ret*33 + (uintptr_t)r.mainShader.get();
+		ret = ret*33 + (uintptr_t)r.skinnedShader.get();
+		ret = ret*33 + (uintptr_t)r.instancedShader.get();
+		ret = ret*33 + (uintptr_t)r.billboardShader.get();
+		ret = ret*33 + k;
+
+		return ret;
+	}
+};
+
 // TODO: this should instantiate a render queue for each unique shader,
 //       collect light nodes, build light/shadow/reflection maps etc...
 //       need to break up the renderWorld() function into a bunch of functions
@@ -123,18 +145,59 @@ void projalphaView::logic(gameMain *game, float delta) {
 //
 //       etc.
 //renderQueue drawEntities(gameMain *game) {
-void drawEntities(gameMain *game, renderQueue& ret) {
+void drawEntities(gameMain *game, renderQueue& ret, camera::ptr cam) {
 	entityManager *entities = game->entities.get();
 	//renderQueue ret;
 
 	auto drawable = searchEntities(entities, {getTypeName<abstractShader>()});
+	auto entroot = game->state->rootnode->getNode("entities");
 
-	for (auto& shader : drawable) {
+	std::map<std::size_t, renderQueue> queues;
+	std::map<std::size_t, renderFlags> shadermap;
+
+	for (entity *shader : drawable) {
+		auto flags = shader->get<abstractShader>();
+		size_t h = flagHash{}(flags->getShader());
+
+		if (shadermap.find(h) == shadermap.end()) {
+			shadermap[h] = flags->getShader();
+		}
+
 		entity *ent = entities->getEntity(shader);
-		ret.add(ent->node);
+		queues[h].add(ent->node);
+
+		//entity *ent = entities->getEntity(shader);
+		//ret.add(ent->node);
+		//std::string name = "entity" + std::to_string((uintptr_t)ent);
+		//setNode(name, entroot, ent->node);
 	}
 
-	//return ret;
+	// XXX: less than ideal
+	renderQueue hax = ret;
+
+	for (auto& [id, que] : queues) {
+		hax.add(que);
+
+		cullQueue(que, cam,
+		          game->rend->framebuffer->width,
+		          game->rend->framebuffer->height,
+		          game->rend->lightThreshold);
+		sortQueue(que, cam);
+	}
+
+	updateLights(game->rend, hax);
+	updateReflections(game->rend, hax);
+	buildTilemap(hax.lights, cam, game->rend);
+	updateReflectionProbe(game->rend, hax, cam);
+
+	game->rend->framebuffer->bind();
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+	DO_ERROR_CHECK();
+
+
+	for (auto& [id, flags] : shadermap) {
+		flush(queues[id], cam, game->rend->framebuffer, game->rend, flags);
+	}
 }
 
 void projalphaView::render(gameMain *game) {
@@ -173,11 +236,12 @@ void projalphaView::render(gameMain *game) {
 
 	} else {
 		renderQueue foo = mapQueue;
-		drawEntities(game, foo);
 		//renderQueue asdf = drawEntities(game);
 		//foo.add(asdf);
 
 		renderWorld(game, cam, foo, flags);
+		drawEntities(game, foo, cam);
+
 		post->draw(game->rend->framebuffer);
 		renderHealthbars(game->entities.get(), nk_ctx, cam);
 
