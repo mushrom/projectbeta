@@ -6,13 +6,13 @@
 #include <grend/ecs/ecs.hpp>
 #include <grend/ecs/collision.hpp>
 #include <grend/ecs/rigidBody.hpp>
+#include <grend/ecs/shader.hpp>
 
 #include <components/health.hpp>
 #include <components/inventory.hpp>
 #include <components/itemPickup.hpp>
 #include <components/boxSpawner.hpp>
 #include <components/sceneTree.hpp>
-#include <components/shader.hpp>
 
 class chasePlayer : public component, public updatable {
 	public:
@@ -31,19 +31,6 @@ class ammoLoot : public autopickup {
 			attach<chasePlayer>();
 			attach<sceneTree>(DEMO_PREFIX "assets/obj/emissive-cube.glb");
 			attach<PBRShader>();
-			/*
-			// TODO: resource manager
-			static gameObject::ptr model = nullptr;
-
-			if (!model) {
-				model = loadSceneCompiled(DEMO_PREFIX "assets/obj/emissive-cube.glb");
-
-				TRS transform = model->getTransformTRS();
-				transform.scale = glm::vec3(0.25);
-				model->setTransform(transform);
-			}
-			setNode("model", node, model);
-			*/
 
 			node->setPosition(position);
 			node->setScale(glm::vec3 {0.25});

@@ -1,10 +1,11 @@
 #include "boxSpawner.hpp"
 #include <grend/geometryGeneration.hpp>
 #include <grend/audioMixer.hpp>
+#include <grend/ecs/shader.hpp>
+
 // TODO: move stuff around
 #include <entities/items/items.hpp>
 #include <components/timedLifetime.hpp>
-#include <components/shader.hpp>
 
 static channelBuffers_ptr sfx = nullptr;
 

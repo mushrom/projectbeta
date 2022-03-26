@@ -87,7 +87,6 @@ set(LANDSCAPE_DEMO_SRC
 	src/components/playerInfo.cpp
 	src/components/explosionParticles.cpp
 	src/components/actions/destructors.cpp
-	src/components/shader.cpp
 
 	src/entities/enemy.cpp
 	src/entities/enemySpawner.cpp

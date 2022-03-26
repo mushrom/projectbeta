@@ -1,9 +1,9 @@
 #include <grend/geometryGeneration.hpp>
 #include <grend/loadScene.hpp>
+#include <grend/ecs/shader.hpp>
 
 #include <components/health.hpp>
 #include <components/healthbar.hpp>
-#include <components/shader.hpp>
 #include <components/sceneTree.hpp>
 #include <entities/enemyCollision.hpp>
 #include <entities/projectile.hpp>
@@ -25,7 +25,7 @@ generator::generator(entityManager *manager, const glm::vec3& position)
 	attach<syncRigidBodyXZVelocity>();
 	attach<enemyCollision>();
 	attach<PBRShader>();
-	attach<sceneTree>(DEMO_PREFIX "assets/obj/potted-plant.glb");
+	attach<sceneTree>(DEMO_PREFIX "assets/obj/lightpole.glb");
 	auto body = attach<rigidBodySphere>(position, 1.0, 1.0);
 
 	//setNode("model", node, enemyModel);

@@ -6,11 +6,11 @@
 #include <grend/ecs/ecs.hpp>
 #include <grend/ecs/collision.hpp>
 #include <grend/ecs/rigidBody.hpp>
+#include <grend/ecs/shader.hpp>
 
 #include <components/health.hpp>
 #include <components/itemPickup.hpp>
 #include <components/sceneTree.hpp>
-#include <components/shader.hpp>
 
 #include <components/actions/Wieldable.hpp>
 #include <components/actions/Throwable.hpp>

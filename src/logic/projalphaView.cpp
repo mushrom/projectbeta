@@ -8,6 +8,7 @@
 #include <grend/controllers.hpp>
 
 #include <grend/ecs/ecs.hpp>
+#include <grend/ecs/shader.hpp>
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -28,7 +29,6 @@ using namespace grendx::ecs;
 #include <logic/levelController.hpp>
 
 #include <entities/player.hpp>
-#include <components/shader.hpp>
 
 #include <nuklear/nuklear.h>
 

@@ -1,9 +1,9 @@
 #include <grend/geometryGeneration.hpp>
 #include <grend/loadScene.hpp>
+#include <grend/ecs/shader.hpp>
 
 #include <components/health.hpp>
 #include <components/healthbar.hpp>
-#include <components/shader.hpp>
 #include <entities/enemyCollision.hpp>
 #include <entities/projectile.hpp>
 #include <entities/player.hpp>
