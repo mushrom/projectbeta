@@ -115,90 +115,6 @@ void projalphaView::logic(gameMain *game, float delta) {
 	}
 }
 
-struct flagHash {
-	std::size_t operator()(const renderFlags& r) const noexcept {
-		std::size_t ret = 737;
-
-		unsigned k = (r.cull_faces << 6)
-		           | (r.sort       << 5)
-		           | (r.stencil    << 4)
-		           | (r.depthTest  << 3)
-		           | (r.depthMask  << 2)
-		           | (r.syncshader << 1)
-		           | (r.shadowmap  << 0);
-
-		ret = ret*33 + (uintptr_t)r.mainShader.get();
-		ret = ret*33 + (uintptr_t)r.skinnedShader.get();
-		ret = ret*33 + (uintptr_t)r.instancedShader.get();
-		ret = ret*33 + (uintptr_t)r.billboardShader.get();
-		ret = ret*33 + k;
-
-		return ret;
-	}
-};
-
-struct multiRenderQueue {
-	public:
-		std::unordered_map<std::size_t, renderQueue> queues;
-		std::unordered_map<std::size_t, renderFlags> shadermap;
-
-		// TODO: probably rename renderFlags to renderShader
-		void add(const renderFlags& shader,
-		         gameObject::ptr obj,
-		         const glm::mat4& trans = glm::mat4(1),
-		         bool inverted = false);
-
-		// TODO:
-		//void add(multiRenderQueue& other);
-};
-
-void multiRenderQueue::add(const renderFlags& shader,
-                           gameObject::ptr obj,
-                           const glm::mat4& trans,
-                           bool inverted)
-{
-	size_t h = flagHash{}(shader);
-
-	if (shadermap.find(h) == shadermap.end()) {
-		shadermap[h] = shader;
-	}
-
-	queues[h].add(obj, 0.f, trans, inverted);
-}
-
-void cullQueue(multiRenderQueue& renque,
-               camera::ptr       cam,
-               unsigned          width,
-               unsigned          height,
-               float             lightext)
-{
-	for (auto& [id, que] : renque.queues) {
-		cullQueue(que, cam, width, height, lightext);
-	}
-}
-
-void sortQueue(multiRenderQueue& renque, camera::ptr cam) {
-	for (auto& [id, que] : renque.queues) {
-		sortQueue(que, cam);
-	}
-}
-
-unsigned flush(multiRenderQueue&      que,
-               camera::ptr            cam,
-               renderFramebuffer::ptr fb,
-               renderContext::ptr     rctx)
-{
-	unsigned sum = 0;
-
-	// TODO: flush in descending order depending on the number of
-	//       objects using each shader
-	for (auto& [id, flags] : que.shadermap) {
-		sum += flush(que.queues[id], cam, fb, rctx, flags);
-	}
-
-	return sum;
-}
-
 // TODO: Maybe add to an existing multiRenderQueue?
 //       or could have an overload for that
 multiRenderQueue buildDrawableQueue(gameMain *game, camera::ptr cam) {
@@ -213,31 +129,6 @@ multiRenderQueue buildDrawableQueue(gameMain *game, camera::ptr cam) {
 	}
 
 	return que;
-}
-
-// TODO: Maybe replaces drawWorld?
-void drawMultiQueue(gameMain *game, multiRenderQueue& que, camera::ptr cam) {
-	// XXX: less than ideal
-	// TODO: need a better way to update global lighting state,
-	//       without (or minimizing) allocations, this could add a lot
-	//       of pointless overhead
-	renderQueue hax;
-	for (auto& [id, que] : que.queues) {
-		hax.add(que);
-	}
-
-	updateLights(game->rend, hax);
-	updateReflections(game->rend, hax);
-	buildTilemap(hax.lights, cam, game->rend);
-	updateReflectionProbe(game->rend, hax, cam);
-
-	cullQueue(que, cam,
-			  game->rend->framebuffer->width,
-			  game->rend->framebuffer->height,
-			  game->rend->lightThreshold);
-	sortQueue(que, cam);
-
-	flush(que, cam, game->rend->framebuffer, game->rend);
 }
 
 void projalphaView::render(gameMain *game) {
