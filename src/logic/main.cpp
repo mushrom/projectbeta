@@ -270,14 +270,6 @@ int main(int argc, char *argv[]) { try {
 
 void addLevelInitializers(gameMain *game, projalphaView::ptr view) {
 	view->level->addInit([=] () {
-		entity *thing = new entity(game->entities.get());
-		game->entities->add(thing);
-
-		thing->attach<sceneTree>("save.map");
-		thing->attach<PBRShader>();
-	});
-
-	view->level->addInit([=] () {
 		entity *playerEnt;
 		glm::vec3 pos(-5, 20, -5);
 

@@ -137,52 +137,93 @@ struct flagHash {
 	}
 };
 
-// TODO: this should instantiate a render queue for each unique shader,
-//       collect light nodes, build light/shadow/reflection maps etc...
-//       need to break up the renderWorld() function into a bunch of functions
-//       to do this, flush() should be moved out of render queue and instead
-//       be a seperate function that also takes light list, etc parameters
-//
-//       etc.
-//renderQueue drawEntities(gameMain *game) {
-void drawEntities(gameMain *game, renderQueue& ret, camera::ptr cam) {
+struct multiRenderQueue {
+	public:
+		std::unordered_map<std::size_t, renderQueue> queues;
+		std::unordered_map<std::size_t, renderFlags> shadermap;
+
+		// TODO: probably rename renderFlags to renderShader
+		void add(const renderFlags& shader,
+		         gameObject::ptr obj,
+		         const glm::mat4& trans = glm::mat4(1),
+		         bool inverted = false);
+
+		// TODO:
+		//void add(multiRenderQueue& other);
+};
+
+void multiRenderQueue::add(const renderFlags& shader,
+                           gameObject::ptr obj,
+                           const glm::mat4& trans,
+                           bool inverted)
+{
+	size_t h = flagHash{}(shader);
+
+	if (shadermap.find(h) == shadermap.end()) {
+		shadermap[h] = shader;
+	}
+
+	queues[h].add(obj, 0.f, trans, inverted);
+}
+
+void cullQueue(multiRenderQueue& renque,
+               camera::ptr       cam,
+               unsigned          width,
+               unsigned          height,
+               float             lightext)
+{
+	for (auto& [id, que] : renque.queues) {
+		cullQueue(que, cam, width, height, lightext);
+	}
+}
+
+void sortQueue(multiRenderQueue& renque, camera::ptr cam) {
+	for (auto& [id, que] : renque.queues) {
+		sortQueue(que, cam);
+	}
+}
+
+unsigned flush(multiRenderQueue&      que,
+               camera::ptr            cam,
+               renderFramebuffer::ptr fb,
+               renderContext::ptr     rctx)
+{
+	unsigned sum = 0;
+
+	// TODO: flush in descending order depending on the number of
+	//       objects using each shader
+	for (auto& [id, flags] : que.shadermap) {
+		sum += flush(que.queues[id], cam, fb, rctx, flags);
+	}
+
+	return sum;
+}
+
+// TODO: Maybe add to an existing multiRenderQueue?
+//       or could have an overload for that
+multiRenderQueue buildDrawableQueue(gameMain *game, camera::ptr cam) {
 	entityManager *entities = game->entities.get();
-	//renderQueue ret;
-
 	auto drawable = searchEntities(entities, {getTypeName<abstractShader>()});
-	auto entroot = game->state->rootnode->getNode("entities");
 
-	std::map<std::size_t, renderQueue> queues;
-	std::map<std::size_t, renderFlags> shadermap;
+	multiRenderQueue que;
 
 	for (entity *shader : drawable) {
 		auto flags = shader->get<abstractShader>();
-		size_t h = flagHash{}(flags->getShader());
-
-		if (shadermap.find(h) == shadermap.end()) {
-			shadermap[h] = flags->getShader();
-		}
-
-		entity *ent = entities->getEntity(shader);
-		queues[h].add(ent->node);
-
-		//entity *ent = entities->getEntity(shader);
-		//ret.add(ent->node);
-		//std::string name = "entity" + std::to_string((uintptr_t)ent);
-		//setNode(name, entroot, ent->node);
+		que.add(flags->getShader(), shader->node);
 	}
 
+	return que;
+}
+
+// TODO: Maybe replaces drawWorld?
+void drawMultiQueue(gameMain *game, multiRenderQueue& que, camera::ptr cam) {
 	// XXX: less than ideal
-	renderQueue hax = ret;
-
-	for (auto& [id, que] : queues) {
+	// TODO: need a better way to update global lighting state,
+	//       without (or minimizing) allocations, this could add a lot
+	//       of pointless overhead
+	renderQueue hax;
+	for (auto& [id, que] : que.queues) {
 		hax.add(que);
-
-		cullQueue(que, cam,
-		          game->rend->framebuffer->width,
-		          game->rend->framebuffer->height,
-		          game->rend->lightThreshold);
-		sortQueue(que, cam);
 	}
 
 	updateLights(game->rend, hax);
@@ -190,14 +231,13 @@ void drawEntities(gameMain *game, renderQueue& ret, camera::ptr cam) {
 	buildTilemap(hax.lights, cam, game->rend);
 	updateReflectionProbe(game->rend, hax, cam);
 
-	game->rend->framebuffer->bind();
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
-	DO_ERROR_CHECK();
+	cullQueue(que, cam,
+			  game->rend->framebuffer->width,
+			  game->rend->framebuffer->height,
+			  game->rend->lightThreshold);
+	sortQueue(que, cam);
 
-
-	for (auto& [id, flags] : shadermap) {
-		flush(queues[id], cam, game->rend->framebuffer, game->rend, flags);
-	}
+	flush(que, cam, game->rend->framebuffer, game->rend);
 }
 
 void projalphaView::render(gameMain *game) {
@@ -235,12 +275,10 @@ void projalphaView::render(gameMain *game) {
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
 	} else {
-		renderQueue foo = mapQueue;
-		//renderQueue asdf = drawEntities(game);
-		//foo.add(asdf);
-
-		//renderWorld(game, cam, foo, flags);
-		drawEntities(game, foo, cam);
+		//drawEntities(game, cam);
+		auto que = buildDrawableQueue(game, cam);
+		que.add(game->rend->getLightingFlags(), game->state->rootnode);
+		drawMultiQueue(game, que, cam);
 
 		post->draw(game->rend->framebuffer);
 		renderHealthbars(game->entities.get(), nk_ctx, cam);
