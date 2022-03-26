@@ -239,7 +239,7 @@ void projalphaView::render(gameMain *game) {
 		//renderQueue asdf = drawEntities(game);
 		//foo.add(asdf);
 
-		renderWorld(game, cam, foo, flags);
+		//renderWorld(game, cam, foo, flags);
 		drawEntities(game, foo, cam);
 
 		post->draw(game->rend->framebuffer);
@@ -285,7 +285,7 @@ void projalphaView::load(gameMain *game, std::string map) {
 		//game->state->rootnode = loadMapCompiled(game, map);
 		game->jobs->addAsync([=, this] () {
 			//auto [node, models] = loadMapData(game, map);
-			if (auto res = loadMapData(game, map)) {
+			if (auto res = loadMapData(map)) {
 				auto mapdata = *res;
 				auto node = mapdata.first;
 				auto models = mapdata.second;

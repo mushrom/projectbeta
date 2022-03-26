@@ -268,8 +268,6 @@ void projalphaView::drawMainMenu(gameMain *game, int wx, int wy) {
 }
 
 
-extern struct nk_image fooimg;
-
 void projalphaView::drawSettings(gameMain *game, int wx, int wy) {
 	static int idx = 0;
 
@@ -289,27 +287,6 @@ void projalphaView::drawSettings(gameMain *game, int wx, int wy) {
 
 		//nk_layout_row_dynamic(nk_ctx, width, 1);
 		nk_layout_row_static(nk_ctx, 64, 64, 2);
-		//SDL_Log("asdf: %d\n", fooimg.handle.id);
-		if (nk_button_image(nk_ctx, fooimg))
-		{
-			SDL_Log("asdf");
-		}
-
-		nk_image(nk_ctx, fooimg);
-
-
-		/*
-		if (nk_button_label(nk_ctx, "yo")) {
-			SDL_Log("ot");
-		}
-		*/
-
-		/*
-		if (nk_button_image_label(nk_ctx, fooimg, "asdfasdfa", NK_TEXT_CENTERED))
-		{
-			SDL_Log("asdf");
-		}
-		*/
 
 		// XXX: need a less terrible way to do this
 		static int rowidx = 0;

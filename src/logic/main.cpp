@@ -150,9 +150,6 @@ int runTests(gameMain *game, projalphaView::ptr view, const char *target);
 
 #include <logic/tests/tests.hpp>
 
-// XXX: global, TODO REMOVE FOR REAL AAAAAAAAA
-struct nk_image fooimg;
-
 // TODO: code is garbage
 #if defined(_WIN32)
 extern "C" {
@@ -179,13 +176,14 @@ int main(int argc, char *argv[]) { try {
 
 	// include editor in debug builds, use main game view for release
 	// XXX: High DPI settings for my current setup
-	renderSettings foo;
-	foo.scaleX = 0.5;
-	foo.scaleY = 0.5;
-	foo.windowResX = 2560;
-	foo.windowResY = 1440;
-	foo.fullscreen = false;
-	foo.UIScale = 2.0;
+	renderSettings foo = (renderSettings){
+		.scaleX = 0.5,
+		.scaleY = 0.5,
+		.fullscreen = false,
+		.windowResX = 2560,
+		.windowResY = 1440,
+		.UIScale = 2.0,
+	};
 
 #if defined(GAME_BUILD_DEBUG)
 	gameMainDevWindow *game = new gameMainDevWindow(foo);
@@ -193,6 +191,9 @@ int main(int argc, char *argv[]) { try {
 	gameMain *game = new gameMain(foo);
 #endif
 
+	/*
+	// TODO: try to autodetect whether this is a high DPI display,
+	//       and set scaling accordingly
 	int gl_w, gl_h;
 	SDL_GL_GetDrawableSize(game->ctx.window, &gl_w, &gl_h);
 	SDL_Log("Drawable: %dx%d", gl_w, gl_h);
@@ -208,57 +209,9 @@ int main(int argc, char *argv[]) { try {
 	} else {
 		SDL_Log("SDL_GetDisplayDPI() failed");
 	}
-
+	*/
 
 	initController();
-	SDL_Log("loading image...");
-	//fooimg = nk_image_load("/home/flux/pics/shit/thinkin.png");
-	//fooimg = nk_image_load("/tmp/portagrend/music.png");
-
-	/*
-	game->jobs->addAsync([=] {
-		auto foo = openSpatialLoop(GR_PREFIX "assets/sfx/Bit Bit Loop.ogg");
-		foo->worldPosition = glm::vec3(-10, 0, -5);
-		game->audio->add(foo);
-		return true;
-	});
-	*/
-
-#if 0
-	/*
-	game->jobs->addAsync([=] {
-		auto msc = openAudio("/tmp/Kyuss.ogg");
-
-		auto bar = std::make_shared<stereoAudioChannel>(msc);
-		glm::vec3 r(rand() / (float)RAND_MAX, 0, rand() / (float)RAND_MAX);
-		bar->worldPosition = glm::vec3(4*32.f * r.x, 2.f, 4*32.f * r.z);
-		bar->loopMode = audioChannel::mode::Loop;
-		game->audio->add(bar);
-		return true;
-	});
-	*/
-
-	game->jobs->addAsync([=] {
-		auto hum = openAudio(DEMO_PREFIX "assets/sfx/cave themeb4.ogg");
-		auto water = openAudio(DEMO_PREFIX "assets/sfx/atmosbasement.mp3_.ogg");
-
-		for (auto& sfx : {hum, water}) {
-			for (int i = 0; i < 5; i++) {
-				auto bar = std::make_shared<spatialAudioChannel>(sfx);
-				glm::vec3 r(rand() / (float)RAND_MAX, 0, rand() / (float)RAND_MAX);
-				bar->worldPosition = glm::vec3(4*32.f * r.x, 2.f, 4*32.f * r.z);
-				bar->loopMode = audioChannel::mode::Loop;
-				game->audio->add(bar);
-			}
-		}
-
-		//auto bar = openSpatialLoop(GR_PREFIX "assets/sfx/Meditating Beat.ogg");
-		//auto bar = openSpatialLoop(DEMO_PREFIX "assets/sfx/cave themeb4.ogg");
-		//bar->worldPosition = glm::vec3(34, 0, 34);
-		//game->audio->add(bar);
-		return true;
-	});
-#endif
 
 	projalphaView::ptr view = std::make_shared<projalphaView>(game);
 	view->cam->setFar(1000.0);
@@ -277,16 +230,6 @@ int main(int argc, char *argv[]) { try {
 			SDL_Log("Got to the editor callback!");
 			view->level->reset();
 		});
-
-	// TODO: need some way to update world state when editor nodes
-	//       are added, could be as simple as a list of callback functions
-	//       that get called when adding nodes
-	game->input.bind(MODAL_ALL_MODES, [=] (SDL_Event& ev, unsigned flags) {
-		if (ev.type == SDL_KEYDOWN && ev.key.keysym.sym == SDLK_p) {
-			view->level->reset();
-		}
-		return MODAL_NO_CHANGE;
-	});
 #endif
 
 	addLevelInitializers(game, view);
@@ -294,7 +237,7 @@ int main(int argc, char *argv[]) { try {
 	SDL_Log("Got to game->run()! mapfile: %s\n", mapfile);
 
 	std::vector<physicsObject::ptr> mapPhysics;
-	if (auto res = loadMapCompiled(game, mapfile)) {
+	if (auto res = loadMapCompiled(mapfile)) {
 		auto mapdata = *res;
 		game->state->rootnode = mapdata;
 		//setNode("entities", game->state->rootnode, game->entities->root);
@@ -326,6 +269,14 @@ int main(int argc, char *argv[]) { try {
 }
 
 void addLevelInitializers(gameMain *game, projalphaView::ptr view) {
+	view->level->addInit([=] () {
+		entity *thing = new entity(game->entities.get());
+		game->entities->add(thing);
+
+		thing->attach<sceneTree>("save.map");
+		thing->attach<PBRShader>();
+	});
+
 	view->level->addInit([=] () {
 		entity *playerEnt;
 		glm::vec3 pos(-5, 20, -5);
