@@ -115,22 +115,6 @@ void projalphaView::logic(gameMain *game, float delta) {
 	}
 }
 
-// TODO: Maybe add to an existing multiRenderQueue?
-//       or could have an overload for that
-multiRenderQueue buildDrawableQueue(gameMain *game, camera::ptr cam) {
-	entityManager *entities = game->entities.get();
-	auto drawable = searchEntities(entities, {getTypeName<abstractShader>()});
-
-	multiRenderQueue que;
-
-	for (entity *shader : drawable) {
-		auto flags = shader->get<abstractShader>();
-		que.add(flags->getShader(), shader->node);
-	}
-
-	return que;
-}
-
 void projalphaView::render(gameMain *game) {
 	int winsize_x, winsize_y;
 	SDL_GetWindowSize(game->ctx.window, &winsize_x, &winsize_y);
