@@ -232,12 +232,16 @@ nk_sdl_render(enum nk_anti_aliasing AA, int max_vertex_buffer, int max_element_b
         glBindBuffer(GL_ARRAY_BUFFER, dev->vbo);
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, dev->ebo);
 
-        glBufferData(GL_ARRAY_BUFFER, max_vertex_buffer, NULL, GL_STREAM_DRAW);
-        glBufferData(GL_ELEMENT_ARRAY_BUFFER, max_element_buffer, NULL, GL_STREAM_DRAW);
-
         /* load vertices/elements directly into vertex/element buffer */
-        vertices = glMapBuffer(GL_ARRAY_BUFFER, GL_WRITE_ONLY);
-        elements = glMapBuffer(GL_ELEMENT_ARRAY_BUFFER, GL_WRITE_ONLY);
+		// TODO: VLAs aren't supported in c89, and I assume the main repo
+		//       would frown upon malloc() here... eh
+		uint8_t vertbuf[max_vertex_buffer];
+		uint8_t embuf[max_element_buffer];
+		memset(vertbuf, 0, max_vertex_buffer);
+		memset(embuf, 0, max_element_buffer);
+
+		vertices = vertbuf;
+		elements = embuf;
         {
             /* fill convert configuration */
             struct nk_convert_config config;
@@ -264,8 +268,9 @@ nk_sdl_render(enum nk_anti_aliasing AA, int max_vertex_buffer, int max_element_b
             nk_buffer_init_fixed(&ebuf, elements, (nk_size)max_element_buffer);
             nk_convert(&sdl.ctx, &dev->cmds, &vbuf, &ebuf, &config);
         }
-        glUnmapBuffer(GL_ARRAY_BUFFER);
-        glUnmapBuffer(GL_ELEMENT_ARRAY_BUFFER);
+
+        glBufferData(GL_ARRAY_BUFFER, max_vertex_buffer, vertices, GL_STREAM_DRAW);
+        glBufferData(GL_ELEMENT_ARRAY_BUFFER, max_element_buffer, elements, GL_STREAM_DRAW);
 
         /* iterate over and execute each draw command */
         nk_draw_foreach(cmd, &sdl.ctx, &dev->cmds) {

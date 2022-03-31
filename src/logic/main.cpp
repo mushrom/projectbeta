@@ -164,7 +164,8 @@ int WinMain(void) try {
 int main(int argc, char *argv[]) { try {
 #endif
 	//const char *mapfile = DEMO_PREFIX "assets/maps/level-test.map";
-	const char *mapfile = DEMO_PREFIX "assets/maps/arena-test.map";
+	//const char *mapfile = DEMO_PREFIX "assets/maps/arena-test.map";
+	const char *mapfile = DEMO_PREFIX "assets/maps/save.map";
 
 	if (argc > 1) {
 		mapfile = argv[1];
@@ -177,18 +178,20 @@ int main(int argc, char *argv[]) { try {
 	// include editor in debug builds, use main game view for release
 	// XXX: High DPI settings for my current setup
 	renderSettings foo = (renderSettings){
-		.scaleX = 0.5,
-		.scaleY = 0.5,
+		.scaleX = 1.0,
+		.scaleY = 1.0,
+		.targetResX = 1280,
+		.targetResY = 720,
 		.fullscreen = false,
-		.windowResX = 2560,
-		.windowResY = 1440,
-		.UIScale = 2.0,
+		.windowResX = 1280,
+		.windowResY = 720,
+		.UIScale = 1.0,
 	};
 
 #if defined(GAME_BUILD_DEBUG)
 	gameMainDevWindow *game = new gameMainDevWindow(foo);
 #else
-	gameMain *game = new gameMain(foo);
+	gameMain *game = new gameMain("game", foo);
 #endif
 
 	/*
@@ -236,7 +239,7 @@ int main(int argc, char *argv[]) { try {
 
 	SDL_Log("Got to game->run()! mapfile: %s\n", mapfile);
 
-	std::vector<physicsObject::ptr> mapPhysics;
+	static std::vector<physicsObject::ptr> mapPhysics;
 	if (auto res = loadMapCompiled(mapfile)) {
 		auto mapdata = *res;
 		game->state->rootnode = mapdata;

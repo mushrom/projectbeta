@@ -23,6 +23,10 @@ option(PORTABLE_BUILD      "Portable build, include all dependancies in the inst
 option(PRECOMPILED_HEADERS "Build with precompiled headers (experimental)"           OFF)
 include(GNUInstallDirs)
 
+if (EMSCRIPTEN)
+	set(PORTABLE_BUILD ON)
+endif()
+
 if (EXISTS ${PROJECT_SOURCE_DIR}/grend)
 	message(STATUS "Found grend subdirectory, using that as library")
 	set(GREND_PATH ./grend)
@@ -54,15 +58,15 @@ if (ANDROID OR GREND_PATH)
 
 elseif(EMSCRIPTEN)
 	#link_directories("${CMAKE_INSTALL_PREFIX}/lib")
-	#find_library(Grend Grend)
-	#list(APPEND DEMO_LINK_LIBS Grend)
+	find_library(Grend Grend)
+	list(APPEND DEMO_LINK_LIBS Grend)
 
-	set(CMAKE_PREFIX_PATH "${CMAKE_INSTALL_PREFIX}/lib/pkgconfig")
-	set(ENV{PKG_CONFIG_PATH} "$ENV{PKG_CONFIG_PATH}:${CMAKE_PREFIX_PATH}")
-	message("PREFIX PATH: $ENV{PKG_CONFIG_PATH}")
-	find_package(PkgConfig REQUIRED)
-	pkg_check_modules(Grend REQUIRED IMPORTED_TARGET grend)
-	list(APPEND DEMO_LINK_LIBS PkgConfig::Grend)
+	#set(CMAKE_PREFIX_PATH "${CMAKE_INSTALL_PREFIX}/lib/pkgconfig")
+	#set(ENV{PKG_CONFIG_PATH} "$ENV{PKG_CONFIG_PATH}:${CMAKE_PREFIX_PATH}")
+	#message("PREFIX PATH: $ENV{PKG_CONFIG_PATH}")
+	#find_package(PkgConfig REQUIRED)
+	#pkg_check_modules(Grend REQUIRED IMPORTED_TARGET grend)
+	#list(APPEND DEMO_LINK_LIBS PkgConfig::Grend)
 
 # TODO: assume unixen, presumably there'll be different library lookup
 #       stuff for windows/etc
@@ -147,8 +151,8 @@ else()
 	elseif (EMSCRIPTEN)
 		message(STATUS "Building for emscripten")
 		set(EMSCRIPTEN_MORE_STUFF
-			--preload-file=/tmp/webbuild/share/grend@/
-			--preload-file=${PROJECT_SOURCE_DIR}/assets/@/assets
+			--preload-file=/tmp/webbuild/@/
+			--preload-file=/tmp/arena/share/proj/@/share/proj
 			--shell-file=${PROJECT_SOURCE_DIR}/shell.html
 		)
 
@@ -160,7 +164,7 @@ else()
 			-sERROR_ON_UNDEFINED_SYMBOLS=0
 			-sTOTAL_MEMORY=1048576000
 			-sOFFSCREEN_FRAMEBUFFER=1
-			-sFULL_ES3=1
+			#-sFULL_ES3=1
 		)
 
 		set(CMAKE_EXECUTABLE_SUFFIX ".html")
